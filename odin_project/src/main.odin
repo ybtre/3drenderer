@@ -102,10 +102,15 @@ render_color_buffer :: proc()
 }
 
 clear_color_buffer :: proc(color: u32) {
-  for y in 0 ..< window_height {
-    for x in 0 ..< window_width {
-      color_buffer[(window_width * y) + x] = color
-    }
+  // for y in 0 ..< window_height {
+  //   for x in 0 ..< window_width {
+  //     color_buffer[(window_width * y) + x] = color
+  //   }
+  // }
+
+  for i in 0 ..< window_width * window_height
+  {
+      color_buffer[i] = color
   }
 }
 
@@ -122,6 +127,7 @@ render :: proc() {
 
 destroy_window :: proc() {
   delete(color_buffer)
+  sdl.DestroyTexture(color_buffer_texture)
 
   sdl.DestroyRenderer(renderer)
   sdl.DestroyWindow(window)
