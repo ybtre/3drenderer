@@ -89,6 +89,8 @@ update :: proc() {
 
 render_color_buffer :: proc()
 {
+  //NOTE:
+  //A rawptr is like a void * in C. A pointer to anything at all. So for a []T you'll want raw_data (or &thing[0], but that does a bounds check).
   sdl.UpdateTexture(
     color_buffer_texture,
     nil,
