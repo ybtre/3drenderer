@@ -1,11 +1,20 @@
 package renderer
 
+import "core:mem"
 import "core:fmt"
 import sdl "vendor:sdl2"
+
+window_width  :: 800
+window_height :: 600
 
 is_running : = false
 window     : ^sdl.Window
 renderer   : ^sdl.Renderer
+//NOTE: 
+//- could later be changed to a static array
+//- pointer to first element
+color_buffer : ^u32
+
 
 initialize_window :: proc() -> bool
 {
@@ -19,7 +28,8 @@ initialize_window :: proc() -> bool
     nil,
     sdl.WINDOWPOS_CENTERED,
     sdl.WINDOWPOS_CENTERED,
-    800, 600,
+    window_width, 
+    window_height,
     sdl.WINDOW_BORDERLESS
   )
   if window == nil
@@ -44,7 +54,10 @@ initialize_window :: proc() -> bool
 
 setup :: proc()
 {
-
+  //NOTE:
+  //- [^]u32 is a like a c style array, with a pointer to the first element and unknown length
+  //- []u32 is an odin slice. Under the hood it's a struct with a length and a pointer to the data.
+  color_buffer = make([^]u32, window_width * window_height)
 }
 
 process_input :: proc()
@@ -66,10 +79,8 @@ process_input :: proc()
           is_running = false
         }
       }
-
     }
   }
-
 }
 
 update :: proc()
@@ -86,8 +97,24 @@ render :: proc()
 
 }
 
+destroy_window :: proc()
+{
+  free(color_buffer)
+
+  sdl.DestroyRenderer(renderer)
+  sdl.DestroyWindow(window)
+  sdl.Quit()
+}
+
 main :: proc()
 {
+  track : mem.Tracking_Allocator
+  mem.tracking_allocator_init(&track, context.allocator)
+  defer mem.tracking_allocator_destroy(&track)
+
+  context.allocator = mem.tracking_allocator(&track)
+
+  /////////////////////////////////////////////////////////
   is_running = initialize_window();
 
   setup()
@@ -97,6 +124,16 @@ main :: proc()
     process_input();
     update();
     render();
+  }
+
+  destroy_window()
+
+  /////////////////////////////////////////////////////////
+  for _, leak in track.allocation_map {
+      fmt.printf("%v leaked %m\n", leak.location, leak.size)
+  }
+  for bad_free in track.bad_free_array {
+      fmt.printf("%v allocation %p was freed badly\n", bad_free.location, bad_free.memory)
   }
 
 }
