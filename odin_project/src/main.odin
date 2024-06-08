@@ -42,13 +42,61 @@ initialize_window :: proc() -> bool
   return true
 }
 
+setup :: proc()
+{
+
+}
+
+process_input :: proc()
+{
+  event : sdl.Event
+
+  for sdl.PollEvent(&event)
+  {
+    #partial switch event.type
+    {
+    case sdl.EventType.QUIT:
+      {
+        is_running = false;
+      }
+    case sdl.EventType.KEYDOWN:
+      {
+        if event.key.keysym.sym == sdl.Keycode.ESCAPE
+        {
+          is_running = false
+        }
+      }
+
+    }
+  }
+
+}
+
+update :: proc()
+{
+
+}
+
+render :: proc()
+{
+  sdl.SetRenderDrawColor(renderer, 222, 83, 7, 255)
+  sdl.RenderClear(renderer)
+
+  sdl.RenderPresent(renderer)
+
+}
+
 main :: proc()
 {
   is_running = initialize_window();
 
+  setup()
+
   for is_running
   {
-
+    process_input();
+    update();
+    render();
   }
 
 }
