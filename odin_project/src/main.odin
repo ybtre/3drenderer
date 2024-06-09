@@ -100,21 +100,8 @@ update :: proc() {
 
 }
 
-render_color_buffer :: proc()
+draw_grid :: proc(COLOR : u32)
 {
-  //NOTE:
-  //A rawptr is like a void * in C. A pointer to anything at all. So for a []T you'll want raw_data (or &thing[0], but that does a bounds check).
-  sdl.UpdateTexture(
-    color_buffer_texture,
-    nil,
-    &color_buffer[0],
-    i32(window_width * size_of(u32))
-  )
-
-  sdl.RenderCopy(renderer, color_buffer_texture, nil, nil)
-}
-
-clear_color_buffer :: proc(color: u32) {
   // for y in 0 ..< window_height {
   //   for x in 0 ..< window_width {
   //     color_buffer[(window_width * y) + x] = color
@@ -150,14 +137,43 @@ clear_color_buffer :: proc(color: u32) {
 
     if temp == row || i % 100 == 0
     {
-      color_buffer[i] = color
+      color_buffer[i] = COLOR
     }
+  }
+}
+
+render_color_buffer :: proc()
+{
+  //NOTE:
+  //A rawptr is like a void * in C. A pointer to anything at all. So for a []T you'll want raw_data (or &thing[0], but that does a bounds check).
+  sdl.UpdateTexture(
+    color_buffer_texture,
+    nil,
+    &color_buffer[0],
+    i32(window_width * size_of(u32))
+  )
+
+  sdl.RenderCopy(renderer, color_buffer_texture, nil, nil)
+}
+
+clear_color_buffer :: proc(color: u32) {
+  // for y in 0 ..< window_height {
+  //   for x in 0 ..< window_width {
+  //     color_buffer[(window_width * y) + x] = color
+  //   }
+  // }
+
+  for i in 0 ..< window_width * window_height
+  {
+      color_buffer[i] = color
   }
 }
 
 render :: proc() {
   sdl.SetRenderDrawColor(renderer, 222, 83, 7, 255)
   sdl.RenderClear(renderer)
+
+  draw_grid(0xFFFF00FF)
 
   render_color_buffer()
   clear_color_buffer(0xFFFF00FF)
