@@ -51,10 +51,10 @@ initialize_window :: proc() -> bool {
   }
 
   //NOTE: Sets fullscreen app regardless of window height and width
-  sdl.SetWindowFullscreen(
-    window,
-    sdl.WINDOW_FULLSCREEN
-  )
+  // sdl.SetWindowFullscreen(
+  //   window,
+  //   sdl.WINDOW_FULLSCREEN
+  // )
 
   return true
 }
@@ -104,19 +104,10 @@ draw_grid :: proc(COLOR : u32)
 {
   // for y in 0 ..< window_height {
   //   for x in 0 ..< window_width {
-  //     color_buffer[(window_width * y) + x] = color
   //
-  //     if y % 100 == 0
+  //     if y % 100 == 0 || x % 100 == 0
   //     {
-  //       color_buffer[(window_width * y) + x] = color
-  //     }
-  //     else if x % 100 == 1
-  //     {
-  //       color_buffer[(window_width * y) + x]= 0xFFFF0000
-  //     }
-  //     else 
-  //     {
-  //       color_buffer[(window_width * y) + x] = 0xFF000000
+  //       color_buffer[(window_width * y) + x] = COLOR
   //     }
   //   }
   // }
@@ -124,7 +115,6 @@ draw_grid :: proc(COLOR : u32)
   temp, row : i32
   for i in 0 ..< window_width * window_height
   {
-    color_buffer[i] = 0xFF000000
     //horizontal lines calculators
     if i % window_width == 0
     {
@@ -176,7 +166,7 @@ render :: proc() {
   draw_grid(0xFFFF00FF)
 
   render_color_buffer()
-  clear_color_buffer(0xFFFF00FF)
+  clear_color_buffer(0xFF000000)
 
   sdl.RenderPresent(renderer)
 
