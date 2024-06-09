@@ -141,6 +141,45 @@ draw_grid :: proc(COLOR : u32)
   }
 }
 
+draw_rect :: proc(X, Y, W, H : i32, COLOR : u32, OUTLINE : bool)
+{
+  for y in 0 ..< window_height {
+    for x in 0 ..< window_width {
+
+      if !OUTLINE 
+      {
+        if ( x >= X && x <= X + W ) && ( y >= Y && y <= Y + H)
+        {
+          color_buffer[(window_width * y) + x] = COLOR
+        }
+      }
+      else 
+      {
+        //top line
+        if ( x >= X && x <= X + W ) && y == Y
+        {
+          color_buffer[(window_width * y) + x] = COLOR
+        }
+        //bot line
+        if ( x >= X && x <= X + W ) && y == Y + H
+        {
+          color_buffer[(window_width * y) + x] = COLOR
+        }
+        //left line
+        if ( y >= Y && y <= Y + H ) && x == X 
+        {
+          color_buffer[(window_width * y) + x] = COLOR
+        }
+        // //right line
+        if ( y >= Y && y <= Y + H ) && x == X + W
+        {
+          color_buffer[(window_width * y) + x] = COLOR
+        }
+      }
+    }
+  }
+}
+
 render_color_buffer :: proc()
 {
   //NOTE:
@@ -174,11 +213,13 @@ render :: proc() {
 
   draw_grid(0xFFFF00FF)
 
+  draw_rect(600, 600, 200, 200, 0xFFFF00FF, true)
+  draw_rect(900, 600, 200, 200, 0xFFFF00FF, false)
+
   render_color_buffer()
   clear_color_buffer(0xFF000000)
 
   sdl.RenderPresent(renderer)
-
 }
 
 destroy_window :: proc() {
