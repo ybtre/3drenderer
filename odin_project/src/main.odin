@@ -4,18 +4,18 @@ import "core:fmt"
 import "core:mem"
 import sdl "vendor:sdl2"
 
-is_running := false
-window: ^sdl.Window
-renderer: ^sdl.Renderer
+is_running : = false
+window     : ^sdl.Window
+renderer   : ^sdl.Renderer
 
 //NOTE:
 //- could later be changed to a static array
 //- pointer to first element
-color_buffer: []u32
-color_buffer_texture: ^sdl.Texture
+color_buffer         : []u32
+color_buffer_texture : ^sdl.Texture
 
-window_width :: 800
-window_height :: 600
+window_width  : i32 = 800
+window_height : i32 = 600
 
 
 initialize_window :: proc() -> bool {
@@ -23,6 +23,13 @@ initialize_window :: proc() -> bool {
     fmt.printf("Error initializing SDL. \n")
     return false
   }
+
+  //Use SDL to query what is the fullscreen max width and height
+  display_mode : sdl.DisplayMode
+  sdl.GetCurrentDisplayMode(0, &display_mode)
+
+  window_width = i32( display_mode.w )
+  window_height = i32( display_mode.h )
 
   window = sdl.CreateWindow(
     nil,
@@ -42,6 +49,12 @@ initialize_window :: proc() -> bool {
     fmt.printf("Error creating SDL Renderer. \n")
     return false
   }
+
+  //NOTE: Sets fullscreen app regardless of window height and width
+  sdl.SetWindowFullscreen(
+    window,
+    sdl.WINDOW_FULLSCREEN
+  )
 
   return true
 }
@@ -119,7 +132,7 @@ render :: proc() {
   sdl.RenderClear(renderer)
 
   render_color_buffer()
-  clear_color_buffer(0xFFFFFF00)
+  clear_color_buffer(0xFFFF00FF)
 
   sdl.RenderPresent(renderer)
 

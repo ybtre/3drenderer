@@ -15,7 +15,7 @@ EXE_NAME        = ./build/Renderer
 
 
 build: $(OBJS)
-	$(COMPILER) $(OBJS) $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(EXE_NAME) -v
+	$(COMPILER) $(OBJS) -o $(EXE_NAME) $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(COMPILER_FLAGS) $(LINKER_FLAGS)
 
 run:
 	./build/Renderer.exe
