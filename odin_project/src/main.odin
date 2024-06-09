@@ -118,12 +118,40 @@ clear_color_buffer :: proc(color: u32) {
   // for y in 0 ..< window_height {
   //   for x in 0 ..< window_width {
   //     color_buffer[(window_width * y) + x] = color
+  //
+  //     if y % 100 == 0
+  //     {
+  //       color_buffer[(window_width * y) + x] = color
+  //     }
+  //     else if x % 100 == 1
+  //     {
+  //       color_buffer[(window_width * y) + x]= 0xFFFF0000
+  //     }
+  //     else 
+  //     {
+  //       color_buffer[(window_width * y) + x] = 0xFF000000
+  //     }
   //   }
   // }
 
+  temp, row : i32
   for i in 0 ..< window_width * window_height
   {
+    color_buffer[i] = 0xFF000000
+    //horizontal lines calculators
+    if i % window_width == 0
+    {
+      row += 1
+      if row % 100 == 0
+      {
+        temp = row
+      }
+    }
+
+    if temp == row || i % 100 == 0
+    {
       color_buffer[i] = color
+    }
   }
 }
 
