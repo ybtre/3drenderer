@@ -17,6 +17,10 @@ color_buffer_texture : ^sdl.Texture
 window_width  : i32 = 800
 window_height : i32 = 600
 
+LIGHT_ORANGE :: 0xFDB750
+DARK_ORANGE  :: 0xFD7F20
+PINK         :: 0xFFFF00FF
+
 
 initialize_window :: proc() -> bool {
   if sdl.Init(sdl.INIT_EVERYTHING) != 0 {
@@ -103,15 +107,15 @@ update :: proc() {
 draw_grid :: proc(COLOR : u32)
 {
   //NOTE: basic naive grid implementation
-  // for y in 0 ..< window_height {
-  //   for x in 0 ..< window_width {
-  //
-  //     if y % 100 == 0 || x % 100 == 0
-  //     {
-  //       color_buffer[(window_width * y) + x] = COLOR
-  //     }
-  //   }
-  // }
+  for y in 0 ..< window_height {
+    for x in 0 ..< window_width {
+
+      if y % 100 == 0 || x % 100 == 0
+      {
+        color_buffer[(window_width * y) + x] = COLOR
+      }
+    }
+  }
 
   //NOTE: single for loop grid implementation
   // temp, row : i32
@@ -134,11 +138,11 @@ draw_grid :: proc(COLOR : u32)
   // }
 
   //NOTE: dotted grid implementation
-  for y :i32 = 0; y < window_height; y += 10 {
-    for x :i32 = 0; x < window_width; x += 10 {
-        color_buffer[(window_width * y) + x] = COLOR
-    }
-  }
+  // for y :i32 = 0; y < window_height; y += 10 {
+  //   for x :i32 = 0; x < window_width; x += 10 {
+  //       color_buffer[(window_width * y) + x] = COLOR
+  //   }
+  // }
 }
 
 draw_rect :: proc(X, Y, W, H : i32, COLOR : u32, OUTLINE : bool)
@@ -211,10 +215,10 @@ render :: proc() {
   sdl.SetRenderDrawColor(renderer, 222, 83, 7, 255)
   sdl.RenderClear(renderer)
 
-  draw_grid(0xFFFF00FF)
+  draw_grid(PINK)
 
-  draw_rect(600, 600, 200, 200, 0xFFFF00FF, true)
-  draw_rect(900, 600, 200, 200, 0xFFFF00FF, false)
+  draw_rect(600, 600, 200, 100, DARK_ORANGE, true)
+  draw_rect(900, 600, 200, 200, LIGHT_ORANGE, false)
 
   render_color_buffer()
   clear_color_buffer(0xFF000000)
