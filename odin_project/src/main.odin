@@ -102,6 +102,7 @@ update :: proc() {
 
 draw_grid :: proc(COLOR : u32)
 {
+  //NOTE: basic naive grid implementation
   // for y in 0 ..< window_height {
   //   for x in 0 ..< window_width {
   //
@@ -112,22 +113,30 @@ draw_grid :: proc(COLOR : u32)
   //   }
   // }
 
-  temp, row : i32
-  for i in 0 ..< window_width * window_height
-  {
-    //horizontal lines calculators
-    if i % window_width == 0
-    {
-      row += 1
-      if row % 100 == 0
-      {
-        temp = row
-      }
-    }
+  //NOTE: single for loop grid implementation
+  // temp, row : i32
+  // for i in 0 ..< window_width * window_height
+  // {
+  //   //horizontal lines calculators
+  //   if i % window_width == 0
+  //   {
+  //     row += 1
+  //     if row % 100 == 0
+  //     {
+  //       temp = row
+  //     }
+  //   }
+  //
+  //   if temp == row || i % 100 == 0
+  //   {
+  //     color_buffer[i] = COLOR
+  //   }
+  // }
 
-    if temp == row || i % 100 == 0
-    {
-      color_buffer[i] = COLOR
+  //NOTE: dotted grid implementation
+  for y :i32 = 0; y < window_height; y += 10 {
+    for x :i32 = 0; x < window_width; x += 10 {
+        color_buffer[(window_width * y) + x] = COLOR
     }
   }
 }
