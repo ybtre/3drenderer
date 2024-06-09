@@ -147,41 +147,51 @@ draw_grid :: proc(COLOR : u32)
 
 draw_rect :: proc(X, Y, W, H : i32, COLOR : u32, OUTLINE : bool)
 {
-  for y in 0 ..< window_height {
-    for x in 0 ..< window_width {
-
-      if !OUTLINE 
-      {
-        if ( x >= X && x <= X + W ) && ( y >= Y && y <= Y + H)
-        {
-          color_buffer[(window_width * y) + x] = COLOR
-        }
-      }
-      else 
-      {
-        //top line
-        if ( x >= X && x <= X + W ) && y == Y
-        {
-          color_buffer[(window_width * y) + x] = COLOR
-        }
-        //bot line
-        if ( x >= X && x <= X + W ) && y == Y + H
-        {
-          color_buffer[(window_width * y) + x] = COLOR
-        }
-        //left line
-        if ( y >= Y && y <= Y + H ) && x == X 
-        {
-          color_buffer[(window_width * y) + x] = COLOR
-        }
-        // //right line
-        if ( y >= Y && y <= Y + H ) && x == X + W
-        {
-          color_buffer[(window_width * y) + x] = COLOR
-        }
-      }
+  //NOTE: Gustavo
+  for i in 0 ..< W {
+    for j in 0 ..< H {
+      current_x := X + i
+      current_y := Y + j
+      color_buffer[(window_width * current_y) + current_x] = COLOR
     }
   }
+
+  //NOTE: mine
+  // for y in 0 ..< window_height {
+  //   for x in 0 ..< window_width {
+  //
+  //     if !OUTLINE 
+  //     {
+  //       if ( x >= X && x <= X + W ) && ( y >= Y && y <= Y + H)
+  //       {
+  //         color_buffer[(window_width * y) + x] = COLOR
+  //       }
+  //     }
+  //     else 
+  //     {
+  //       //top line
+  //       if ( x >= X && x <= X + W ) && y == Y
+  //       {
+  //         color_buffer[(window_width * y) + x] = COLOR
+  //       }
+  //       //bot line
+  //       if ( x >= X && x <= X + W ) && y == Y + H
+  //       {
+  //         color_buffer[(window_width * y) + x] = COLOR
+  //       }
+  //       //left line
+  //       if ( y >= Y && y <= Y + H ) && x == X 
+  //       {
+  //         color_buffer[(window_width * y) + x] = COLOR
+  //       }
+  //       // //right line
+  //       if ( y >= Y && y <= Y + H ) && x == X + W
+  //       {
+  //         color_buffer[(window_width * y) + x] = COLOR
+  //       }
+  //     }
+  //   }
+  // }
 }
 
 render_color_buffer :: proc()
