@@ -3,7 +3,7 @@
     "collections": [
             { "name": "src", "path": "./src" }
     ],
-    "enable_format": true,
+    "enable_format": false,
     "enable_semantic_tokens": true,
     "enable_document_symbols": true,
     "enable_hover": true,
