@@ -2,7 +2,7 @@ build:
 	odin build . -out:../build/Renderer.exe -debug -show-timings -terse-errors -o:none
 
 run:
-	odin run . -out:../build/Renderer.exe -debug -show-timings
+	odin run . -out:../build/Renderer.exe -debug -show-timings -terse-errors -o:none
 
 clean:
 	rm ./build/Renderer

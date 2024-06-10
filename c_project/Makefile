@@ -9,7 +9,7 @@ LIBRARY_PATHS   = -Lsrc/lib/
 
 COMPILER_FLAGS  = -Wextra -g -O0
 
-LINKER_FLAGS    = -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
+LINKER_FLAGS    = -lSDL2 -lSDL2main -lSDL2_image -lSDL2_mixer -lSDL2_ttf
 
 EXE_NAME        = ./build/Renderer
 

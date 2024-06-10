@@ -1,6 +1,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+//NOTE: should probably be removed for macos build...
 #define SDL_MAIN_HANDLED
 
 #include "../include/SDL2/SDL.h"
