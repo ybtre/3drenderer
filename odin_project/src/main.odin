@@ -8,10 +8,13 @@ import sdl "vendor:sdl2"
 /////////////////////////////////////////////////////////////////////
 // Declare an array of vectors/points
 /////////////////////////////////////////////////////////////////////
-N_POINTS :: 9 * 9 * 9
-cube_points : [N_POINTS]vec3
+N_POINTS         :                : 9 * 9 * 9
+cube_points      : [N_POINTS]vec3
+projected_points : [N_POINTS]vec2
 
-is_running : = false
+fov_factor       : f32 = 128
+
+is_running       : = false
 
 /////////////////////////////////////////////////////////////////////
 setup :: proc()
@@ -67,22 +70,52 @@ process_input :: proc() {
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Function that receives a 3D vector and returns a projectced 2D Point
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+project :: proc(POINT : vec3) -> vec2
+{
+  projected_point := vec2{ 
+    ( fov_factor * POINT.x ),
+    ( fov_factor * POINT.y ) }
+
+  return projected_point
+}
+
 /////////////////////////////////////////////////////////////////////
 update :: proc() {
+  for i in 0 ..< N_POINTS
+  {
+    point : vec3 = cube_points[i]
 
+    //project the current point
+    projected_point := project(point)
+
+    //save the projected 2D vector in the array of projected points
+    projected_points[i] = projected_point
+  }
 }
 
 /////////////////////////////////////////////////////////////////////
 render :: proc() {
-  sdl.SetRenderDrawColor(renderer, 222, 83, 7, 255)
-  sdl.RenderClear(renderer)
+  // draw_grid(PINK)
 
-  draw_grid(PINK)
+  //Loop all projected points and render them
+  for i in 0 ..< N_POINTS
+  {
+    projected_point := projected_points[i]
 
-  draw_pixel(20, 20, DARK_ORANGE)
-  draw_rect(900, 600, 200, 200, LIGHT_ORANGE, false)
+    draw_rect(
+      i32( projected_point.x ) + (window_width / 2),
+      i32( projected_point.y ) + (window_height / 2),
+      4,
+      4,
+      DARK_ORANGE,
+      false)
+  }
 
   render_color_buffer()
+
   clear_color_buffer(0xFF000000)
 
   sdl.RenderPresent(renderer)

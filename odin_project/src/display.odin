@@ -107,7 +107,7 @@ draw_grid :: proc(COLOR : u32)
 /////////////////////////////////////////////////////////////////////
 draw_pixel :: proc(X, Y : i32, COLOR : u32)
 {
-  if (X > window_width) || (Y > window_height) || (X < 0) || (Y < 0)
+  if (X > window_width) || (Y > window_height) || (X <= 0) || (Y <= 0)
   {
     return
   }
@@ -123,7 +123,7 @@ draw_rect :: proc(X, Y, W, H : i32, COLOR : u32, OUTLINE : bool)
     for j in 0 ..< H {
       current_x := X + i
       current_y := Y + j
-      color_buffer[(window_width * current_y) + current_x] = COLOR
+      draw_pixel(current_x, current_y, COLOR)
     }
   }
 
