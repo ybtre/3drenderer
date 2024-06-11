@@ -4,6 +4,13 @@ import "core:fmt"
 import "core:mem"
 import sdl "vendor:sdl2"
 
+
+/////////////////////////////////////////////////////////////////////
+// Declare an array of vectors/points
+/////////////////////////////////////////////////////////////////////
+N_POINTS :: 9 * 9 * 9
+cube_points : [N_POINTS]vec3
+
 is_running : = false
 
 /////////////////////////////////////////////////////////////////////
@@ -23,6 +30,20 @@ setup :: proc()
     window_width,
     window_height,
   )
+
+  //start loading array of vectors
+  //from -1 to 1 (in this 9x9x9 cuve)
+  point_count : int = 0
+  for x : f32 = -1; x <= 1; x += .25 {
+    for y : f32 = -1; y <= 1; y += .25 {
+      for z : f32 = -1; z <= 1; z += .25 {
+        new_point : vec3 = { x, y, z }
+        cube_points[point_count] = new_point
+
+        point_count += 1
+      }
+    }
+  }
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -92,6 +113,8 @@ main :: proc() {
   is_running = initialize_window()
 
   setup()
+
+  vector : vec3 = {2,2,2}
 
   for is_running {
     process_input()
