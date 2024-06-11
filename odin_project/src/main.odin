@@ -58,7 +58,7 @@ render :: proc() {
 
   draw_grid(PINK)
 
-  draw_rect(600, 600, 200, 100, DARK_ORANGE, true)
+  draw_pixel(20, 20, DARK_ORANGE)
   draw_rect(900, 600, 200, 200, LIGHT_ORANGE, false)
 
   render_color_buffer()
@@ -75,6 +75,19 @@ main :: proc() {
 
   context.allocator = mem.tracking_allocator(&track)
 
+  defer {
+    for _, leak in track.allocation_map {
+      fmt.printf("%v leaked %m\n", leak.location, leak.size)
+    }
+    for bad_free in track.bad_free_array {
+      fmt.printf(
+        "%v allocation %p was freed badly\n",
+        bad_free.location,
+        bad_free.memory,
+      )
+    }
+  }
+
   /////////////////////////////////////////////////////////
   is_running = initialize_window()
 
@@ -87,16 +100,4 @@ main :: proc() {
   }
 
   destroy_window()
-
-  /////////////////////////////////////////////////////////
-  for _, leak in track.allocation_map {
-    fmt.printf("%v leaked %m\n", leak.location, leak.size)
-  }
-  for bad_free in track.bad_free_array {
-    fmt.printf(
-      "%v allocation %p was freed badly\n",
-      bad_free.location,
-      bad_free.memory,
-    )
-  }
 }

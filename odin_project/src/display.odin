@@ -11,7 +11,6 @@ renderer   : ^sdl.Renderer
 
 //NOTE:
 //- could later be changed to a static array
-//- pointer to first element
 color_buffer         : []u32
 color_buffer_texture : ^sdl.Texture
 
@@ -106,6 +105,17 @@ draw_grid :: proc(COLOR : u32)
 }
 
 /////////////////////////////////////////////////////////////////////
+draw_pixel :: proc(X, Y : i32, COLOR : u32)
+{
+  if (X > window_width) || (Y > window_height) || (X < 0) || (Y < 0)
+  {
+    return
+  }
+
+  color_buffer[(window_width * Y) + X] = COLOR
+}
+
+/////////////////////////////////////////////////////////////////////
 draw_rect :: proc(X, Y, W, H : i32, COLOR : u32, OUTLINE : bool)
 {
   //NOTE: Gustavo
@@ -164,7 +174,7 @@ render_color_buffer :: proc()
     color_buffer_texture,
     nil,
     &color_buffer[0],
-    i32(window_width * size_of(u32))
+    i32(window_width * size_of(u32)),
   )
 
   sdl.RenderCopy(renderer, color_buffer_texture, nil, nil)
