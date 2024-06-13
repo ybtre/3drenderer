@@ -12,7 +12,9 @@ N_POINTS         :                : 9 * 9 * 9
 cube_points      : [N_POINTS]vec3
 projected_points : [N_POINTS]vec2
 
-fov_factor       : f32 = 128
+camera_position  : vec3 = { 0, 0, -5 }
+
+fov_factor       : f32 = 640
 
 is_running       : = false
 
@@ -75,9 +77,9 @@ process_input :: proc() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 project :: proc(POINT : vec3) -> vec2
 {
-  projected_point := vec2{ 
-    ( fov_factor * POINT.x ),
-    ( fov_factor * POINT.y ) }
+  projected_point := vec2{
+    ( fov_factor * POINT.x ) / POINT.z,
+    ( fov_factor * POINT.y ) / POINT.z }
 
   return projected_point
 }
@@ -87,6 +89,9 @@ update :: proc() {
   for i in 0 ..< N_POINTS
   {
     point : vec3 = cube_points[i]
+
+    //move/translate the point away from the camera
+    point.z -= camera_position.z
 
     //project the current point
     projected_point := project(point)
