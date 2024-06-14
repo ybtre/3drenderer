@@ -13,6 +13,7 @@ cube_points      : [N_POINTS]vec3
 projected_points : [N_POINTS]vec2
 
 camera_position  : vec3 = { 0, 0, -5 }
+cube_rotation    : vec3 = { 0, 0, 0 }
 
 fov_factor       : f32 = 640
 
@@ -85,16 +86,28 @@ project :: proc(POINT : vec3) -> vec2
 }
 
 /////////////////////////////////////////////////////////////////////
-update :: proc() {
+update :: proc()
+{
+  cube_rotation.x += 0.01
+  cube_rotation.y += 0.01
+  cube_rotation.z += 0.01
+  
+
   for i in 0 ..< N_POINTS
   {
     point : vec3 = cube_points[i]
 
-    //move/translate the point away from the camera
-    point.z -= camera_position.z
+    point.y -= 2
+
+    transformed_point := vec3_rotate_x(point, cube_rotation.x)
+    transformed_point = vec3_rotate_y(transformed_point, cube_rotation.y)
+    transformed_point = vec3_rotate_z(transformed_point, cube_rotation.z)
+
+    transformed_point.z -= camera_position.z
+    //translate the point away from the camera
 
     //project the current point
-    projected_point := project(point)
+    projected_point := project(transformed_point)
 
     //save the projected 2D vector in the array of projected points
     projected_points[i] = projected_point
