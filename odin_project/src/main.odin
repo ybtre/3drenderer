@@ -18,6 +18,7 @@ cube_rotation    : vec3 = { 0, 0, 0 }
 fov_factor       : f32 = 640
 
 is_running       : = false
+prev_frame_time  : u32
 
 /////////////////////////////////////////////////////////////////////
 setup :: proc()
@@ -88,6 +89,17 @@ project :: proc(POINT : vec3) -> vec2
 /////////////////////////////////////////////////////////////////////
 update :: proc()
 {
+  //Wait some time untill we reach the target frame time in ms
+  time_to_wait := FRAME_TARGET_TIME - (sdl.GetTicks() - prev_frame_time)
+
+  //Only delay execution if we are running too fast
+  if time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME
+  {
+    sdl.Delay(time_to_wait)
+  }
+
+  prev_frame_time = sdl.GetTicks()
+
   cube_rotation.x += 0.01
   cube_rotation.y += 0.01
   cube_rotation.z += 0.01
@@ -97,14 +109,14 @@ update :: proc()
   {
     point : vec3 = cube_points[i]
 
-    point.y -= 2
+    point.y -= 1
 
     transformed_point := vec3_rotate_x(point, cube_rotation.x)
     transformed_point = vec3_rotate_y(transformed_point, cube_rotation.y)
     transformed_point = vec3_rotate_z(transformed_point, cube_rotation.z)
 
-    transformed_point.z -= camera_position.z
     //translate the point away from the camera
+    transformed_point.z -= camera_position.z
 
     //project the current point
     projected_point := project(transformed_point)
