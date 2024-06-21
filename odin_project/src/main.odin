@@ -4,21 +4,18 @@ import "core:fmt"
 import "core:mem"
 import sdl "vendor:sdl2"
 
-
 /////////////////////////////////////////////////////////////////////
-// Declare an array of vectors/points
+// Declarations
 /////////////////////////////////////////////////////////////////////
-N_POINTS         :                : 9 * 9 * 9
-cube_points      : [N_POINTS]vec3
-projected_points : [N_POINTS]vec2
+triangles_to_render : [N_MESH_FACES]triangle_t
 
-camera_position  : vec3 = { 0, 0, -5 }
-cube_rotation    : vec3 = { 0, 0, 0 }
+camera_position     : vec3 = { 0, 0, -5 }
+cube_rotation       : vec3 = { 0, 0, 0 }
 
-fov_factor       : f32 = 640
+fov_factor          : f32 = 640
 
-is_running       : = false
-prev_frame_time  : u32
+is_running          : = false
+prev_frame_time     : u32
 
 /////////////////////////////////////////////////////////////////////
 setup :: proc()
@@ -38,19 +35,6 @@ setup :: proc()
     window_height,
   )
 
-  //start loading array of vectors
-  //from -1 to 1 (in this 9x9x9 cuve)
-  point_count : int = 0
-  for x : f32 = -1; x <= 1; x += .25 {
-    for y : f32 = -1; y <= 1; y += .25 {
-      for z : f32 = -1; z <= 1; z += .25 {
-        new_point : vec3 = { x, y, z }
-        cube_points[point_count] = new_point
-
-        point_count += 1
-      }
-    }
-  }
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -103,26 +87,44 @@ update :: proc()
   cube_rotation.x += 0.01
   cube_rotation.y += 0.01
   cube_rotation.z += 0.01
-  
-
-  for i in 0 ..< N_POINTS
+ 
+  //Loop all triangle faces of our mesh
+  for i in 0 ..< N_MESH_FACES
   {
-    point : vec3 = cube_points[i]
+    mesh_face :face_t = mesh_faces[i]
 
-    point.y -= 1
+    face_vertices : [3]vec3 = {
+      mesh_vertices[mesh_face.a - 1],
+      mesh_vertices[mesh_face.b - 1],
+      mesh_vertices[mesh_face.c - 1],
+    }
 
-    transformed_point := vec3_rotate_x(point, cube_rotation.x)
-    transformed_point = vec3_rotate_y(transformed_point, cube_rotation.y)
-    transformed_point = vec3_rotate_z(transformed_point, cube_rotation.z)
+    projected_triangle : triangle_t 
 
-    //translate the point away from the camera
-    transformed_point.z -= camera_position.z
+    //Loop all three vertices of this current face and apply transformations
+    for j in 0 ..< 3
+    {
+      transformed_vertex := face_vertices[j]
 
-    //project the current point
-    projected_point := project(transformed_point)
+      transformed_vertex = vec3_rotate_x(transformed_vertex, cube_rotation.x)
+      transformed_vertex = vec3_rotate_y(transformed_vertex, cube_rotation.y)
+      transformed_vertex = vec3_rotate_z(transformed_vertex, cube_rotation.z)
 
-    //save the projected 2D vector in the array of projected points
-    projected_points[i] = projected_point
+      //translate the vertex away from the camera in z
+      transformed_vertex.z -= camera_position.z
+
+      //project the current point
+      projected_point := project(transformed_vertex)
+
+      //scale and translate the projected points to the middle of the screen
+      projected_point.x += f32(window_width /2)
+      projected_point.y += f32(window_height /2)
+    
+      projected_triangle.points[j] = projected_point
+    }
+
+    //Save the projected triangle in the array of the triangles to render
+    triangles_to_render[i] = projected_triangle
   }
 }
 
@@ -130,18 +132,21 @@ update :: proc()
 render :: proc() {
   // draw_grid(PINK)
 
-  //Loop all projected points and render them
-  for i in 0 ..< N_POINTS
+  //Loop all projected triangles and render them
+  for i in 0 ..< N_MESH_FACES
   {
-    projected_point := projected_points[i]
-
-    draw_rect(
-      i32( projected_point.x ) + (window_width / 2),
-      i32( projected_point.y ) + (window_height / 2),
-      4,
-      4,
-      DARK_ORANGE,
-      false)
+    triangle := triangles_to_render[i]
+    
+    for vert in triangle.points
+    {
+      draw_rect(
+        i32( vert.x ),
+        i32( vert.y ),
+        4,
+        4,
+        DARK_ORANGE,
+        false)
+    }
   }
 
   render_color_buffer()

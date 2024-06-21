@@ -7,7 +7,7 @@ import sdl "vendor:sdl2"
 //                       VARIABLES                                 //
 /////////////////////////////////////////////////////////////////////
 
-FPS               : u32 : 30
+FPS               : u32 : 60
 FRAME_TARGET_TIME : u32 : (1000 / FPS)
 
 window     : ^sdl.Window
