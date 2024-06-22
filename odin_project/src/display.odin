@@ -1,6 +1,7 @@
 package renderer
 
 import "core:fmt"
+import "core:math"
 import sdl "vendor:sdl2"
 
 /////////////////////////////////////////////////////////////////////
@@ -119,6 +120,26 @@ draw_pixel :: proc(X, Y : i32, COLOR : u32)
   color_buffer[(window_width * Y) + X] = COLOR
 }
 
+draw_line :: proc(X0, Y0, X1, Y1 : i32, COLOR : u32)
+{
+    delta_x := (X1 - X0)
+    delta_y := (Y1 - Y0)
+
+    longest_side_length := ( math.abs(delta_x) >= math.abs(delta_y) ) ? math.abs(delta_x) : math.abs(delta_y)
+
+    x_step : f32 = f32(delta_x) / f32(longest_side_length)
+    y_step : f32 = f32(delta_y) / f32(longest_side_length)
+
+    current_x : f32 = f32(X0)
+    current_y : f32 = f32(Y0)
+    for i in 0 ..< longest_side_length
+    {
+        draw_pixel(i32(math.round_f32(current_x)), i32(math.round_f32(current_y)), COLOR)
+        current_x += x_step
+        current_y += y_step
+    }
+}
+
 /////////////////////////////////////////////////////////////////////
 draw_rect :: proc(X, Y, W, H : i32, COLOR : u32, OUTLINE : bool)
 {
@@ -167,6 +188,13 @@ draw_rect :: proc(X, Y, W, H : i32, COLOR : u32, OUTLINE : bool)
   //     }
   //   }
   // }
+}
+
+draw_triangle :: proc(X0, Y0, X1, Y1, X2, Y2 : i32, COLOR : u32)
+{
+    draw_line(X0, Y0, X1, Y1, COLOR)
+    draw_line(X1, Y1, X2, Y2, COLOR)
+    draw_line(X2, Y2, X0, Y0, COLOR)
 }
 
 /////////////////////////////////////////////////////////////////////

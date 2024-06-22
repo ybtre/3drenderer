@@ -87,7 +87,7 @@ update :: proc()
   cube_rotation.x += 0.01
   cube_rotation.y += 0.01
   cube_rotation.z += 0.01
- 
+
   //Loop all triangle faces of our mesh
   for i in 0 ..< N_MESH_FACES
   {
@@ -99,7 +99,7 @@ update :: proc()
       mesh_vertices[mesh_face.c - 1],
     }
 
-    projected_triangle : triangle_t 
+    projected_triangle : triangle_t
 
     //Loop all three vertices of this current face and apply transformations
     for j in 0 ..< 3
@@ -119,7 +119,7 @@ update :: proc()
       //scale and translate the projected points to the middle of the screen
       projected_point.x += f32(window_width /2)
       projected_point.y += f32(window_height /2)
-    
+
       projected_triangle.points[j] = projected_point
     }
 
@@ -136,7 +136,16 @@ render :: proc() {
   for i in 0 ..< N_MESH_FACES
   {
     triangle := triangles_to_render[i]
-    
+
+    //Draw unfilled triangle
+    draw_triangle(
+        i32(triangle.points[0].x), i32(triangle.points[0].y),
+        i32(triangle.points[1].x), i32(triangle.points[1].y),
+        i32(triangle.points[2].x), i32(triangle.points[2].y),
+        DARK_ORANGE
+    )
+
+    //Draw vertex points
     for vert in triangle.points
     {
       draw_rect(
@@ -144,7 +153,7 @@ render :: proc() {
         i32( vert.y ),
         4,
         4,
-        DARK_ORANGE,
+        LIGHT_ORANGE,
         false)
     }
   }
