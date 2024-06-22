@@ -2,3 +2,5 @@
 /odin_project/build/Renderer.exe
 /odin_project/build/Renderer.exe.dSYM/Contents/Resources/DWARF/Renderer.exe
 /odin_project/build/Renderer.exe.dSYM/Contents/Resources/Relocations/aarch64/Renderer.exe.yml
+odin_project/build/Renderer.exe
+odin_project/build/Renderer.pdb
