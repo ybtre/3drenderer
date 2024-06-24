@@ -5,17 +5,18 @@ import "core:mem"
 import sdl "vendor:sdl2"
 
 /////////////////////////////////////////////////////////////////////
-// Declarations
+// Array of triangles that should be rendered frame by frame
 /////////////////////////////////////////////////////////////////////
-triangles_to_render : [N_MESH_FACES]triangle_t
+triangles_to_render := make([dynamic]triangle_t)
 
-camera_position     : vec3 = { 0, 0, -5 }
-cube_rotation       : vec3 = { 0, 0, 0 }
-
-fov_factor          : f32 = 640
-
+/////////////////////////////////////////////////////////////////////
+// Global varialbes for execution status and game loop
+/////////////////////////////////////////////////////////////////////
 is_running          : = false
 prev_frame_time     : u32
+
+camera_position     : vec3 = { 0, 0, -5 }
+fov_factor          : f32 = 640
 
 /////////////////////////////////////////////////////////////////////
 setup :: proc()
@@ -35,6 +36,7 @@ setup :: proc()
     window_height,
   )
 
+  load_cube_mesh_data()
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -83,20 +85,20 @@ update :: proc()
   }
 
   prev_frame_time = sdl.GetTicks()
-
-  cube_rotation.x += 0.01
-  cube_rotation.y += 0.01
-  cube_rotation.z += 0.01
+  
+  mesh.rotation.x += 0.01
+  mesh.rotation.y += 0.01
+  mesh.rotation.z += 0.01
 
   //Loop all triangle faces of our mesh
-  for i in 0 ..< N_MESH_FACES
+  for i in 0 ..< len(mesh.faces)
   {
-    mesh_face :face_t = mesh_faces[i]
+    mesh_face : face_t = mesh.faces[i]
 
     face_vertices : [3]vec3 = {
-      mesh_vertices[mesh_face.a - 1],
-      mesh_vertices[mesh_face.b - 1],
-      mesh_vertices[mesh_face.c - 1],
+      mesh.vertices[mesh_face.a - 1],
+      mesh.vertices[mesh_face.b - 1],
+      mesh.vertices[mesh_face.c - 1],
     }
 
     projected_triangle : triangle_t
@@ -106,9 +108,9 @@ update :: proc()
     {
       transformed_vertex := face_vertices[j]
 
-      transformed_vertex = vec3_rotate_x(transformed_vertex, cube_rotation.x)
-      transformed_vertex = vec3_rotate_y(transformed_vertex, cube_rotation.y)
-      transformed_vertex = vec3_rotate_z(transformed_vertex, cube_rotation.z)
+      transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x)
+      transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y)
+      transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z)
 
       //translate the vertex away from the camera in z
       transformed_vertex.z -= camera_position.z
@@ -124,7 +126,7 @@ update :: proc()
     }
 
     //Save the projected triangle in the array of the triangles to render
-    triangles_to_render[i] = projected_triangle
+    append(&triangles_to_render, projected_triangle)
   }
 }
 
@@ -133,16 +135,14 @@ render :: proc() {
   // draw_grid(PINK)
 
   //Loop all projected triangles and render them
-  for i in 0 ..< N_MESH_FACES
+  for triangle in triangles_to_render
   {
-    triangle := triangles_to_render[i]
-
     //Draw unfilled triangle
     draw_triangle(
-        i32(triangle.points[0].x), i32(triangle.points[0].y),
-        i32(triangle.points[1].x), i32(triangle.points[1].y),
-        i32(triangle.points[2].x), i32(triangle.points[2].y),
-        DARK_ORANGE
+      i32(triangle.points[0].x), i32(triangle.points[0].y),
+      i32(triangle.points[1].x), i32(triangle.points[1].y),
+      i32(triangle.points[2].x), i32(triangle.points[2].y),
+      DARK_ORANGE,
     )
 
     //Draw vertex points
@@ -158,11 +158,25 @@ render :: proc() {
     }
   }
 
+  //clear the array of trinalgers to render every frame loop
+  clear(&triangles_to_render)
+
   render_color_buffer()
 
   clear_color_buffer(0xFF000000)
 
   sdl.RenderPresent(renderer)
+}
+
+/////////////////////////////////////////////////////////////////////
+// Free the memory that has been dynamically allocated by the program
+/////////////////////////////////////////////////////////////////////
+free_resources :: proc()
+{
+  delete(mesh.faces)
+  delete(mesh.vertices)
+  delete(color_buffer)
+  delete(triangles_to_render)
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -200,4 +214,5 @@ main :: proc() {
   }
 
   destroy_window()
+  free_resources()
 }

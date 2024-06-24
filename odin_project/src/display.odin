@@ -229,7 +229,6 @@ clear_color_buffer :: proc(color: u32)
 
 /////////////////////////////////////////////////////////////////////
 destroy_window :: proc() {
-  delete(color_buffer)
   sdl.DestroyTexture(color_buffer_texture)
 
   sdl.DestroyRenderer(renderer)

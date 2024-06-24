@@ -1,10 +1,25 @@
 package renderer
 
 /////////////////////////////////////////////////////////////////////
+// CONST Declarations
+/////////////////////////////////////////////////////////////////////
+N_CUBE_VERTICES :: 8
+N_CUBE_FACES :: (6 * 2) //6 cube faces, 2 triangles per face
+
+/////////////////////////////////////////////////////////////////////
 // Declarations
 /////////////////////////////////////////////////////////////////////
-N_MESH_VERTICES :: 8
-mesh_vertices : [N_MESH_VERTICES]vec3 = {
+mesh_t :: struct 
+{
+  vertices : [dynamic]vec3,
+  faces    : [dynamic]face_t,
+  rotation : vec3,
+}
+
+mesh : mesh_t
+
+
+cube_vertices : [N_CUBE_VERTICES]vec3 = {
   { -1 , -1 , -1 } , // 1
   { -1 , 1  , -1 } , // 2
   { 1  , 1  , -1 } , // 3
@@ -15,8 +30,7 @@ mesh_vertices : [N_MESH_VERTICES]vec3 = {
   { -1 , -1 , 1 }  , // 8
 }
 
-N_MESH_FACES :: (6 * 2) //6 cube faces, 2 triangles per face
-mesh_faces : [N_MESH_FACES]face_t = {
+cube_faces : [N_CUBE_FACES]face_t = {
   //front
   {1 , 2 , 3} ,
   {1 , 3 , 4} ,
@@ -35,4 +49,17 @@ mesh_faces : [N_MESH_FACES]face_t = {
   //bottom
   {6 , 8 , 1} ,
   {6 , 1 , 4} ,
+}
+
+load_cube_mesh_data :: proc()
+{
+  for i in 0 ..< N_CUBE_VERTICES
+  {
+    append(&mesh.vertices, cube_vertices[i])
+  }
+
+  for i in 0 ..< N_CUBE_FACES
+  {
+    append(&mesh.faces, cube_faces[i])
+  }
 }
