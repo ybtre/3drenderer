@@ -4,3 +4,7 @@
 /odin_project/build/Renderer.exe.dSYM/Contents/Resources/Relocations/aarch64/Renderer.exe.yml
 odin_project/build/Renderer.exe
 odin_project/build/Renderer.pdb
+
+odin_project\build\Renderer.exe.dSYM
+odin_project\build\Renderer.exe
+odin_project\build\Renderer.pdb
