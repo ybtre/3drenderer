@@ -37,8 +37,7 @@ setup :: proc()
   )
 
   // load_cube_mesh_data()
-  load_obj_file_data("../assets/race-future.obj")
-
+  load_obj_file_data("../assets/f22.obj")
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -88,9 +87,9 @@ update :: proc()
 
   prev_frame_time = sdl.GetTicks()
   
-  mesh.rotation.x += 0.01
-  // mesh.rotation.y += -0.005
-  // mesh.rotation.z += 0.01
+  mesh.rotation.x += 0.02
+  mesh.rotation.y += -0.00
+  mesh.rotation.z += 0.00
 
   //Loop all triangle faces of our mesh
   for i in 0 ..< len(mesh.faces)
@@ -134,7 +133,7 @@ update :: proc()
 
 /////////////////////////////////////////////////////////////////////
 render :: proc() {
-  // draw_grid(PINK)
+  draw_grid(GREEN)
 
   //Loop all projected triangles and render them
   for triangle in triangles_to_render

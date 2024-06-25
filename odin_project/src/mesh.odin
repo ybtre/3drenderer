@@ -105,15 +105,6 @@ load_obj_file_data :: proc(FILE : string)
     }
   }
 
-  // for v in mesh.vertices
-  // {
-  //   fmt.println(v)
-  // }
-
-  // for v in mesh.faces
-  // {
-  //   fmt.println(v)
-  // }
   free_all(context.temp_allocator)
 }
 

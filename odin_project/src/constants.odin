@@ -6,3 +6,4 @@ package renderer
 LIGHT_ORANGE :: 0xFDB750
 DARK_ORANGE  :: 0xFD7F20
 PINK         :: 0xFFFF00FF
+GREEN        :: 0xADFF2F

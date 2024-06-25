@@ -71,15 +71,15 @@ initialize_window :: proc() -> bool
 draw_grid :: proc(COLOR : u32)
 {
   //NOTE: basic naive grid implementation
-  for y in 0 ..< window_height {
-    for x in 0 ..< window_width {
-
-      if y % 100 == 0 || x % 100 == 0
-      {
-        color_buffer[(window_width * y) + x] = COLOR
-      }
-    }
-  }
+  // for y in 0 ..< window_height {
+  //   for x in 0 ..< window_width {
+  //
+  //     if y % 100 == 0 || x % 100 == 0
+  //     {
+  //       color_buffer[(window_width * y) + x] = COLOR
+  //     }
+  //   }
+  // }
 
   //NOTE: single for loop grid implementation
   // temp, row : i32
@@ -102,11 +102,11 @@ draw_grid :: proc(COLOR : u32)
   // }
 
   //NOTE: dotted grid implementation
-  // for y :i32 = 0; y < window_height; y += 10 {
-  //   for x :i32 = 0; x < window_width; x += 10 {
-  //       color_buffer[(window_width * y) + x] = COLOR
-  //   }
-  // }
+  for y :i32 = 0; y < window_height; y += 30 {
+    for x :i32 = 0; x < window_width; x += 30 {
+        color_buffer[(window_width * y) + x] = COLOR
+    }
+  }
 }
 
 /////////////////////////////////////////////////////////////////////
