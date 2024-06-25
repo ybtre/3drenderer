@@ -225,6 +225,8 @@ clear_color_buffer :: proc(color: u32)
   {
       color_buffer[i] = color
   }
+
+  free_all(context.temp_allocator)
 }
 
 /////////////////////////////////////////////////////////////////////

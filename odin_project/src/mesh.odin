@@ -1,5 +1,10 @@
 package renderer
 
+import "core:os"
+import "core:fmt"
+import "core:strings"
+import "core:strconv"
+
 /////////////////////////////////////////////////////////////////////
 // CONST Declarations
 /////////////////////////////////////////////////////////////////////
@@ -63,3 +68,90 @@ load_cube_mesh_data :: proc()
     append(&mesh.faces, cube_faces[i])
   }
 }
+
+load_obj_file_data :: proc(FILE : string)
+{
+  if data, ok := os.read_entire_file(FILE, context.temp_allocator); ok {
+    data_lines := string(data)
+
+    line_idx := 0
+    for line in strings.split_lines_iterator(&data_lines)
+    {
+      using fmt
+      defer line_idx += 1
+
+      line_elements := strings.split(line, " ", context.temp_allocator)
+      if line_elements[0] == "v"
+      {
+        // printf("VERTICES: %s\n", line_elements)
+        vertex : vec3 = { 
+          f32(strconv.atof(line_elements[1])),
+          f32(strconv.atof(line_elements[2])),
+          f32(strconv.atof(line_elements[3]))}
+
+        append(&mesh.vertices, vertex)
+      }
+      else if line_elements[0] == "f"
+      {
+        // printf("FACES: %s\n", line_elements)
+        face : face_t = {
+          i32( strconv.atoi( strings.split( line_elements[1], "/", context.temp_allocator )[0] ) ),
+          i32( strconv.atoi( strings.split( line_elements[2], "/", context.temp_allocator )[0] ) ),
+          i32( strconv.atoi( strings.split( line_elements[3], "/", context.temp_allocator )[0] ) ),
+        }
+
+        append(&mesh.faces, face)
+      }
+    }
+  }
+
+  // for v in mesh.vertices
+  // {
+  //   fmt.println(v)
+  // }
+
+  // for v in mesh.faces
+  // {
+  //   fmt.println(v)
+  // }
+  free_all(context.temp_allocator)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
