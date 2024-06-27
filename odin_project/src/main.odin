@@ -15,7 +15,7 @@ triangles_to_render := make([dynamic]triangle_t)
 is_running          : = false
 prev_frame_time     : u32
 
-camera_position     : vec3 = { 0, 0, -5 }
+camera_position     : vec3 = { 0, 0, 0 }
 fov_factor          : f32 = 640
 
 /////////////////////////////////////////////////////////////////////
@@ -37,7 +37,9 @@ setup :: proc()
   )
 
   // load_cube_mesh_data()
-  load_obj_file_data("../assets/f22.obj")
+  // load_obj_file_data("../assets/f22.obj")
+  load_obj_file_data("../assets/cube.obj")
+  // load_obj_file_data("../assets/race-future.obj")
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -88,7 +90,7 @@ update :: proc()
   prev_frame_time = sdl.GetTicks()
   
   mesh.rotation.x += 0.02
-  mesh.rotation.y += -0.00
+  mesh.rotation.y += -0.01
   mesh.rotation.z += 0.00
 
   //Loop all triangle faces of our mesh
@@ -102,7 +104,7 @@ update :: proc()
       mesh.vertices[mesh_face.c - 1],
     }
 
-    projected_triangle : triangle_t
+    transformed_vertices : [3]vec3
 
     //Loop all three vertices of this current face and apply transformations
     for j in 0 ..< 3
@@ -114,10 +116,43 @@ update :: proc()
       transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z)
 
       //translate the vertex away from the camera in z
-      transformed_vertex.z -= camera_position.z
+      transformed_vertex.z += 5
 
+      //Save the transformed vertex in the array of transformed vertices
+      transformed_vertices[j] = transformed_vertex
+    }
+
+    //TODO: Check backface culling
+    vector_a := transformed_vertices[0] //  A
+    vector_b := transformed_vertices[1] // / \
+    vector_c := transformed_vertices[2] //C---B
+
+    // get the vector sub of B-A and C-A
+    vector_ab := vec3_sub(vector_b, vector_a)
+    vector_ac := vec3_sub(vector_c, vector_a)
+
+    // Computer the face normal (using cross product to find perperndicular)
+    normal := vec3_cross(vector_ab, vector_ac)
+
+    //find the vector between a point in the triangle and the camera origin
+    camera_ray := vec3_sub(camera_position, vector_a)
+
+    //calculate how aligned the camera ray is with the face normal (using dot product)
+    dot_normal_camera := vec3_dot(normal, camera_ray)
+
+    //bypass the triangles that are looking away from the camera
+    if dot_normal_camera < 0
+    {
+      continue
+    }
+
+    projected_triangle : triangle_t
+
+    //Loop all three vertices to perform the projection
+    for j in 0 ..< 3 
+    {
       //project the current point
-      projected_point := project(transformed_vertex)
+      projected_point := project(transformed_vertices[j])
 
       //scale and translate the projected points to the middle of the screen
       projected_point.x += f32(window_width /2)
