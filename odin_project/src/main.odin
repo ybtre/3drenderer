@@ -19,6 +19,12 @@ prev_frame_time     : u32
 camera_position     : vec3 = { 0, 0, 0 }
 fov_factor          : f32 = 640
 
+toggle_wireframe : bool
+toggle_vertex : bool
+toggle_filled : bool
+toggle_backface_culling : bool
+toggle_normals : bool
+
 /////////////////////////////////////////////////////////////////////
 setup :: proc()
 {
@@ -56,8 +62,34 @@ process_input :: proc() {
       }
     case sdl.EventType.KEYDOWN:
       {
-        if event.key.keysym.sym == sdl.Keycode.ESCAPE {
+        if event.key.keysym.sym == sdl.Keycode.ESCAPE 
+        {
           is_running = false
+        }
+
+        if event.key.keysym.sym == sdl.Keycode.NUM1 
+        {
+          toggle_wireframe = !toggle_wireframe
+        }
+
+        if event.key.keysym.sym == sdl.Keycode.NUM2
+        {
+          toggle_vertex = !toggle_vertex
+        }
+
+        if event.key.keysym.sym == sdl.Keycode.NUM3
+        {
+          toggle_filled = !toggle_filled
+        }
+
+        if event.key.keysym.sym == sdl.Keycode.NUM4
+        {
+          toggle_backface_culling = !toggle_backface_culling
+        }
+
+        if event.key.keysym.sym == sdl.Keycode.NUM5
+        {
+          toggle_normals = !toggle_normals
         }
       }
     }
@@ -123,7 +155,7 @@ update :: proc()
       transformed_vertices[j] = transformed_vertex
     }
 
-    //TODO: Check backface culling
+    //Check backface culling
     vector_a := transformed_vertices[0] //  A
     vector_b := transformed_vertices[1] // / \
     vector_c := transformed_vertices[2] //C---B
@@ -140,42 +172,48 @@ update :: proc()
     // Normalize the face normal vector
     vec3_normalize(&normal)
 
-    //find the vector between a point in the triangle and the camera origin
-    camera_ray := vec3_sub(camera_position, vector_a)
-
-    //calculate how aligned the camera ray is with the face normal (using dot product)
-    dot_normal_camera := vec3_dot(normal, camera_ray)
-
-    //bypass the triangles that are looking away from the camera
-    if dot_normal_camera < 0
+    if toggle_backface_culling
     {
-      continue
+      //find the vector between a point in the triangle and the camera origin
+      camera_ray := vec3_sub(camera_position, vector_a)
+
+      //calculate how aligned the camera ray is with the face normal (using dot product)
+      dot_normal_camera := vec3_dot(normal, camera_ray)
+
+      //bypass the triangles that are looking away from the camera
+      if dot_normal_camera < 0
+      {
+        continue
+      }
     }
 
-    //Center of triangle vertices
-    vec_a_add_b := vec3_add(vector_a, vector_b)
-    vec_ab_add_c := vec3_add(vec_a_add_b, vector_c)
-    center := vec3_div(vec_ab_add_c, 3)
+    if toggle_normals
+    {
+      //Center of triangle vertices
+      vec_a_add_b := vec3_add(vector_a, vector_b)
+      vec_ab_add_c := vec3_add(vec_a_add_b, vector_c)
+      center := vec3_div(vec_ab_add_c, 3)
 
-    //center end point
-    scaled_normal := vec3_mul(normal, ((100 * 5)/(0.5 * f32(window_width))))
-    center_end := vec3_add(center, scaled_normal)
+      //center end point
+      scaled_normal := vec3_mul(normal, ((100 * 5)/(0.5 * f32(window_width))))
+      center_end := vec3_add(center, scaled_normal)
 
-    //project and translate center
-    projected_center := project(center)
-    projected_center.x += f32(window_width /2)
-    projected_center.y += f32(window_height /2)
+      //project and translate center
+      projected_center := project(center)
+      projected_center.x += f32(window_width /2)
+      projected_center.y += f32(window_height /2)
 
-    //project and translate center end
-    projected_end := project(center_end)
-    projected_end.x += f32(window_width /2)
-    projected_end.y += f32(window_height /2)
+      //project and translate center end
+      projected_end := project(center_end)
+      projected_end.x += f32(window_width /2)
+      projected_end.y += f32(window_height /2)
 
-    normal_dbg : normal_DEBUG
-    normal_dbg.points[0] = projected_center
-    normal_dbg.points[1] = projected_end
+      normal_dbg : normal_DEBUG
+      normal_dbg.points[0] = projected_center
+      normal_dbg.points[1] = projected_end
 
-    append(&normals_to_render_DEBUG, normal_dbg)
+      append(&normals_to_render_DEBUG, normal_dbg)
+    }
 
     projected_triangle : triangle_t
 
@@ -204,41 +242,53 @@ render :: proc() {
   //Loop all projected triangles and render them
   for triangle in triangles_to_render
   {
-    //Draw filled triangle
-    draw_filled_triangle(
-      i32(triangle.points[0].x), i32(triangle.points[0].y),
-      i32(triangle.points[1].x), i32(triangle.points[1].y),
-      i32(triangle.points[2].x), i32(triangle.points[2].y),
-      0xFFFFFFFF,
-    )
+    if toggle_wireframe 
+    {
+      //Draw filled triangle
+      draw_filled_triangle(
+        i32(triangle.points[0].x), i32(triangle.points[0].y),
+        i32(triangle.points[1].x), i32(triangle.points[1].y),
+        i32(triangle.points[2].x), i32(triangle.points[2].y),
+        0xFFFFFFFF,
+      )
+    }
 
-    // Draw unfilled triangle
-    draw_triangle(
-      i32(triangle.points[0].x), i32(triangle.points[0].y),
-      i32(triangle.points[1].x), i32(triangle.points[1].y),
-      i32(triangle.points[2].x), i32(triangle.points[2].y),
-      0xFF000000,
-    )
+    if toggle_filled
+    {
+      // Draw unfilled triangle
+      draw_triangle(
+        i32(triangle.points[0].x), i32(triangle.points[0].y),
+        i32(triangle.points[1].x), i32(triangle.points[1].y),
+        i32(triangle.points[2].x), i32(triangle.points[2].y),
+        0xFF000000,
+      )
+    }
 
-    //Draw vertex points
-    // for vert in triangle.points
-    // {
-    //   draw_rect(
-    //     i32( vert.x ),
-    //     i32( vert.y ),
-    //     4,
-    //     4,
-    //     LIGHT_ORANGE,
-    //     false)
-    // }
+    if toggle_vertex
+    {
+      //Draw vertex points
+      for vert in triangle.points
+      {
+        draw_rect(
+          i32( vert.x ),
+          i32( vert.y ),
+          4,
+          4,
+          LIGHT_ORANGE,
+          false)
+      }
+    }
   }
 
-  // for normal in normals_to_render_DEBUG
-  // {
-  //   draw_line(
-  //     i32(normal.points[0].x), i32(normal.points[0].y),
-  //     i32(normal.points[1].x), i32(normal.points[1].y), GREEN)
-  // }
+  if toggle_normals
+  {
+    for normal in normals_to_render_DEBUG
+    {
+      draw_line(
+        i32(normal.points[0].x), i32(normal.points[0].y),
+        i32(normal.points[1].x), i32(normal.points[1].y), GREEN)
+    }
+  }
 
   //clear the array of trinalgers to render every frame loop
   clear(&triangles_to_render)
