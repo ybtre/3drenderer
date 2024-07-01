@@ -37,8 +37,8 @@ setup :: proc()
   )
 
   // load_cube_mesh_data()
-  // load_obj_file_data("../assets/f22.obj")
-  load_obj_file_data("../assets/cube.obj")
+  load_obj_file_data("../assets/f22.obj")
+  // load_obj_file_data("../assets/cube.obj")
   // load_obj_file_data("../assets/race-future.obj")
 }
 
@@ -130,9 +130,14 @@ update :: proc()
     // get the vector sub of B-A and C-A
     vector_ab := vec3_sub(vector_b, vector_a)
     vector_ac := vec3_sub(vector_c, vector_a)
+    vec3_normalize(&vector_ab)
+    vec3_normalize(&vector_ac)
 
     // Computer the face normal (using cross product to find perperndicular)
     normal := vec3_cross(vector_ab, vector_ac)
+
+    // Normalize the face normal vector
+    vec3_normalize(&normal)
 
     //find the vector between a point in the triangle and the camera origin
     camera_ray := vec3_sub(camera_position, vector_a)
@@ -145,6 +150,27 @@ update :: proc()
     {
       continue
     }
+
+    //Center of triangle vertices
+    vec_a_add_b := vec3_add(vector_a, vector_b)
+    vec_ab_add_c := vec3_add(vec_a_add_b, vector_c)
+    center := vec3_div(vec_ab_add_c, 3)
+
+    //center end point
+    scaled_normal := vec3_mul(normal, (200/(0.5 * f32(window_width))))
+    center_end := vec3_add(center, scaled_normal)
+
+    //project and translate center
+    projected_center := project(center)
+    projected_center.x += f32(window_width /2)
+    projected_center.y += f32(window_height /2)
+
+    //project and translate center end
+    projected_end := project(center_end)
+    projected_end.x += f32(window_width /2)
+    projected_end.y += f32(window_height /2)
+
+    draw_line(i32(projected_center.x), i32(projected_center.y), i32(projected_end.x), i32(projected_end.y), GREEN)
 
     projected_triangle : triangle_t
 

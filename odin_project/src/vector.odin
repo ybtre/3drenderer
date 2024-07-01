@@ -113,6 +113,14 @@ vec3_dot :: proc(A, B : vec3) -> f32
   return ( ( A.x * B.x ) + ( A.y * B.y ) + ( A.z * B.z) ) 
 }
 
+vec3_normalize :: proc(OUT_NORMAL : ^vec3)
+{
+  len : f32 = vec3_length(OUT_NORMAL^)
+  OUT_NORMAL.x  /= len
+  OUT_NORMAL.y  /= len
+  OUT_NORMAL.z  /= len
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Vector 2 functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -161,4 +169,11 @@ vec2_div :: proc(V : vec2, FACTOR : f32) -> vec2
 vec2_dot :: proc(A, B : vec2) -> f32
 {
   return ( ( A.x * B.x ) + ( A.y * B.y ) ) 
+}
+
+vec2_normalize :: proc(OUT_NORMAL : ^vec2)
+{
+  len : f32 = vec2_length(OUT_NORMAL^)
+  OUT_NORMAL.x  /= len
+  OUT_NORMAL.y  /= len
 }
