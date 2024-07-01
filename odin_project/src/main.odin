@@ -7,7 +7,8 @@ import sdl "vendor:sdl2"
 /////////////////////////////////////////////////////////////////////
 // Array of triangles that should be rendered frame by frame
 /////////////////////////////////////////////////////////////////////
-triangles_to_render := make([dynamic]triangle_t)
+triangles_to_render     : = make([dynamic]triangle_t)
+normals_to_render_DEBUG : = make([dynamic]normal_DEBUG)
 
 /////////////////////////////////////////////////////////////////////
 // Global varialbes for execution status and game loop
@@ -37,8 +38,8 @@ setup :: proc()
   )
 
   // load_cube_mesh_data()
-  load_obj_file_data("../assets/f22.obj")
-  // load_obj_file_data("../assets/cube.obj")
+  // load_obj_file_data("../assets/f22.obj")
+  load_obj_file_data("../assets/cube.obj")
   // load_obj_file_data("../assets/race-future.obj")
 }
 
@@ -89,9 +90,9 @@ update :: proc()
 
   prev_frame_time = sdl.GetTicks()
   
-  mesh.rotation.x += 0.02
-  mesh.rotation.y += -0.01
-  mesh.rotation.z += 0.00
+  mesh.rotation.x += 0.01
+  // mesh.rotation.y += -0.01
+  // mesh.rotation.z += 0.00
 
   //Loop all triangle faces of our mesh
   for i in 0 ..< len(mesh.faces)
@@ -157,7 +158,7 @@ update :: proc()
     center := vec3_div(vec_ab_add_c, 3)
 
     //center end point
-    scaled_normal := vec3_mul(normal, (200/(0.5 * f32(window_width))))
+    scaled_normal := vec3_mul(normal, ((100 * 5)/(0.5 * f32(window_width))))
     center_end := vec3_add(center, scaled_normal)
 
     //project and translate center
@@ -170,7 +171,11 @@ update :: proc()
     projected_end.x += f32(window_width /2)
     projected_end.y += f32(window_height /2)
 
-    draw_line(i32(projected_center.x), i32(projected_center.y), i32(projected_end.x), i32(projected_end.y), GREEN)
+    normal_dbg : normal_DEBUG
+    normal_dbg.points[0] = projected_center
+    normal_dbg.points[1] = projected_end
+
+    append(&normals_to_render_DEBUG, normal_dbg)
 
     projected_triangle : triangle_t
 
@@ -199,29 +204,45 @@ render :: proc() {
   //Loop all projected triangles and render them
   for triangle in triangles_to_render
   {
-    //Draw unfilled triangle
+    //Draw filled triangle
+    draw_filled_triangle(
+      i32(triangle.points[0].x), i32(triangle.points[0].y),
+      i32(triangle.points[1].x), i32(triangle.points[1].y),
+      i32(triangle.points[2].x), i32(triangle.points[2].y),
+      0xFFFFFFFF,
+    )
+
+    // Draw unfilled triangle
     draw_triangle(
       i32(triangle.points[0].x), i32(triangle.points[0].y),
       i32(triangle.points[1].x), i32(triangle.points[1].y),
       i32(triangle.points[2].x), i32(triangle.points[2].y),
-      DARK_ORANGE,
+      0xFF000000,
     )
 
     //Draw vertex points
-    for vert in triangle.points
-    {
-      draw_rect(
-        i32( vert.x ),
-        i32( vert.y ),
-        4,
-        4,
-        LIGHT_ORANGE,
-        false)
-    }
+    // for vert in triangle.points
+    // {
+    //   draw_rect(
+    //     i32( vert.x ),
+    //     i32( vert.y ),
+    //     4,
+    //     4,
+    //     LIGHT_ORANGE,
+    //     false)
+    // }
   }
+
+  // for normal in normals_to_render_DEBUG
+  // {
+  //   draw_line(
+  //     i32(normal.points[0].x), i32(normal.points[0].y),
+  //     i32(normal.points[1].x), i32(normal.points[1].y), GREEN)
+  // }
 
   //clear the array of trinalgers to render every frame loop
   clear(&triangles_to_render)
+  clear(&normals_to_render_DEBUG)
 
   render_color_buffer()
 

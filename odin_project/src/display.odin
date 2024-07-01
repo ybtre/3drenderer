@@ -132,7 +132,7 @@ draw_line :: proc(X0, Y0, X1, Y1 : i32, COLOR : u32)
 
     current_x : f32 = f32(X0)
     current_y : f32 = f32(Y0)
-    for i in 0 ..< longest_side_length
+    for i in 0 ..= longest_side_length
     {
         draw_pixel(i32(math.round_f32(current_x)), i32(math.round_f32(current_y)), COLOR)
         current_x += x_step
