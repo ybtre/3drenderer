@@ -19,11 +19,11 @@ prev_frame_time     : u32
 camera_position     : vec3 = { 0, 0, 0 }
 fov_factor          : f32 = 640
 
-toggle_wireframe : bool
-toggle_vertex : bool
-toggle_filled : bool
-toggle_backface_culling : bool
-toggle_normals : bool
+toggle_wireframe        : bool = true
+toggle_vertex           : bool = true
+toggle_filled           : bool = true
+toggle_backface_culling : bool = true
+toggle_normals          : bool = false
 
 /////////////////////////////////////////////////////////////////////
 setup :: proc()
@@ -43,9 +43,9 @@ setup :: proc()
     window_height,
   )
 
-  // load_cube_mesh_data()
+  load_cube_mesh_data()
   // load_obj_file_data("../assets/f22.obj")
-  load_obj_file_data("../assets/cube.obj")
+  // load_obj_file_data("../assets/cube.obj")
   // load_obj_file_data("../assets/race-future.obj")
 }
 
@@ -123,8 +123,8 @@ update :: proc()
   prev_frame_time = sdl.GetTicks()
   
   mesh.rotation.x += 0.01
-  // mesh.rotation.y += -0.01
-  // mesh.rotation.z += 0.00
+  // mesh.rotation.y += 0.01
+  // mesh.rotation.z += 0.01
 
   //Loop all triangle faces of our mesh
   for i in 0 ..< len(mesh.faces)
@@ -215,19 +215,24 @@ update :: proc()
       append(&normals_to_render_DEBUG, normal_dbg)
     }
 
-    projected_triangle : triangle_t
+    projected_points : [3]vec2
 
     //Loop all three vertices to perform the projection
     for j in 0 ..< 3 
     {
       //project the current point
-      projected_point := project(transformed_vertices[j])
+      projected_points[j] = project(transformed_vertices[j])
 
       //scale and translate the projected points to the middle of the screen
-      projected_point.x += f32(window_width /2)
-      projected_point.y += f32(window_height /2)
+      projected_points[j].x += f32(window_width /2)
+      projected_points[j].y += f32(window_height /2)
+    }
 
-      projected_triangle.points[j] = projected_point
+    projected_triangle : triangle_t = {
+      { projected_points[0], 
+        projected_points[1], 
+        projected_points[2] },
+      mesh_face.color,
     }
 
     //Save the projected triangle in the array of the triangles to render
@@ -242,25 +247,25 @@ render :: proc() {
   //Loop all projected triangles and render them
   for triangle in triangles_to_render
   {
-    if toggle_wireframe 
+    if toggle_filled 
     {
       //Draw filled triangle
       draw_filled_triangle(
         i32(triangle.points[0].x), i32(triangle.points[0].y),
         i32(triangle.points[1].x), i32(triangle.points[1].y),
         i32(triangle.points[2].x), i32(triangle.points[2].y),
-        0xFFFFFFFF,
+        triangle.color,
       )
     }
 
-    if toggle_filled
+    if toggle_wireframe
     {
       // Draw unfilled triangle
       draw_triangle(
         i32(triangle.points[0].x), i32(triangle.points[0].y),
         i32(triangle.points[1].x), i32(triangle.points[1].y),
         i32(triangle.points[2].x), i32(triangle.points[2].y),
-        0xFF000000,
+        PINK,
       )
     }
 
