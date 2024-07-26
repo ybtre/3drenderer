@@ -16,8 +16,9 @@ face_t :: struct
 
 triangle_t :: struct
 {
-  points : [3]vec2,
-  color  : u32,
+  points    : [3]vec2,
+  color     : u32,
+  avg_depth : f32,
 }
 
 normal_DEBUG :: struct

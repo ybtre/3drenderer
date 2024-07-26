@@ -228,16 +228,24 @@ update :: proc()
       projected_points[j].y += f32(window_height /2)
     }
 
+    //Calculate the average depth for each face based on the vertices z value after transformation
+    avg_depth : f32 = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3
+
     projected_triangle : triangle_t = {
       { projected_points[0], 
         projected_points[1], 
         projected_points[2] },
       mesh_face.color,
+      avg_depth,
     }
 
     //Save the projected triangle in the array of the triangles to render
     append(&triangles_to_render, projected_triangle)
   }
+
+  //TODO: sort the triangles to render by their avg_depth
+  quicksort(&triangles_to_render, 0, (len(triangles_to_render) - 1))
+  // bubblesort(&triangles_to_render, len(triangles_to_render))
 }
 
 /////////////////////////////////////////////////////////////////////
