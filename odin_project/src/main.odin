@@ -26,6 +26,12 @@ toggle_backface_culling : bool = true
 toggle_normals          : bool = false
 
 /////////////////////////////////////////////////////////////////////
+// Debugging related
+/////////////////////////////////////////////////////////////////////
+swaps      : int
+most_swaps : int
+
+/////////////////////////////////////////////////////////////////////
 setup :: proc()
 {
   //NOTE:
@@ -44,6 +50,7 @@ setup :: proc()
   )
 
   load_cube_mesh_data()
+  mesh.scale = { 1, 1, 1 }
   // load_obj_file_data("../assets/f22.obj")
   // load_obj_file_data("../assets/cube.obj")
   // load_obj_file_data("../assets/race-future.obj")
@@ -111,6 +118,8 @@ project :: proc(POINT : vec3) -> vec2
 /////////////////////////////////////////////////////////////////////
 update :: proc()
 {
+  swaps = 0
+
   //Wait some time untill we reach the target frame time in ms
   time_to_wait := FRAME_TARGET_TIME - (sdl.GetTicks() - prev_frame_time)
 
@@ -126,6 +135,11 @@ update :: proc()
   // mesh.rotation.y += 0.01
   // mesh.rotation.z += 0.01
 
+  mesh.scale.x += 0.2
+
+  //create a scale matrix that will be used to multiply mesh vertices
+  scale_matrix := mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z)
+
   //Loop all triangle faces of our mesh
   for i in 0 ..< len(mesh.faces)
   {
@@ -137,16 +151,19 @@ update :: proc()
       mesh.vertices[mesh_face.c - 1],
     }
 
-    transformed_vertices : [3]vec3
+    transformed_vertices : [3]vec4
 
     //Loop all three vertices of this current face and apply transformations
     for j in 0 ..< 3
     {
-      transformed_vertex := face_vertices[j]
+      transformed_vertex := vec4_from_vec3(face_vertices[j])
 
-      transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x)
-      transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y)
-      transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z)
+      //TODO: use a matrix to scale our original vertex
+      transformed_vertex = mat4_mul_vec4(scale_matrix, transformed_vertex)
+
+      // transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x)
+      // transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y)
+      // transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z)
 
       //translate the vertex away from the camera in z
       transformed_vertex.z += 5
@@ -156,9 +173,9 @@ update :: proc()
     }
 
     //Check backface culling
-    vector_a := transformed_vertices[0] //  A
-    vector_b := transformed_vertices[1] // / \
-    vector_c := transformed_vertices[2] //C---B
+    vector_a := vec3_from_vec4(transformed_vertices[0]) //  A
+    vector_b := vec3_from_vec4(transformed_vertices[1]) // / \
+    vector_c := vec3_from_vec4(transformed_vertices[2]) //C---B
 
     // get the vector sub of B-A and C-A
     vector_ab := vec3_sub(vector_b, vector_a)
@@ -221,7 +238,7 @@ update :: proc()
     for j in 0 ..< 3 
     {
       //project the current point
-      projected_points[j] = project(transformed_vertices[j])
+      projected_points[j] = project(vec3_from_vec4(transformed_vertices[j]))
 
       //scale and translate the projected points to the middle of the screen
       projected_points[j].x += f32(window_width /2)
@@ -243,16 +260,22 @@ update :: proc()
     append(&triangles_to_render, projected_triangle)
   }
 
-  //TODO: sort the triangles to render by their avg_depth
   quicksort(&triangles_to_render, 0, (len(triangles_to_render) - 1))
-  // bubblesort(&triangles_to_render, len(triangles_to_render))
+  // bubblesort(&triangles_to_render)
+
+
+  if swaps >= most_swaps
+  {
+    most_swaps = swaps
+  }
+  fmt.println(most_swaps)
 }
 
 /////////////////////////////////////////////////////////////////////
 render :: proc() {
   draw_grid(GREEN)
 
-  //Loop all projected triangles and render them
+  //Loop all projected triangles and render the
   for triangle in triangles_to_render
   {
     if toggle_filled 

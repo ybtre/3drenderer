@@ -1,5 +1,8 @@
 package renderer
 
+import "core:fmt"
+
+
 swap :: proc(ARR : ^[dynamic]triangle_t, i, j : int)
 {
   temp := ARR[i]
@@ -20,6 +23,7 @@ partition :: proc(ARR : ^[dynamic]triangle_t, LOW, HIGH : int) -> int
     //if current ele is smalller than the pivot
     if ARR[j].avg_depth < pivot
     {
+      swaps += 1
       //increment index of smaller ele
       i+=1
       swap(ARR, i, j)
@@ -46,17 +50,18 @@ quicksort :: proc(ARR : ^[dynamic]triangle_t, LOW, HIGH : int)
   }
 }
 
-bubblesort :: proc(ARR : ^[dynamic]triangle_t, N : int)
+bubblesort :: proc(ARR : ^[dynamic]triangle_t)
 {
   i       : int
   j       : int
   temp    : triangle_t
   swapped : bool
 
-  for i = 0; i < N - 1; i += 1
+  len     := len(ARR)
+  for i = 0; i < len - 1; i += 1
   {
     swapped = false
-    for j = 0; j < N - i - 1; j += 1
+    for j = 0; j < len - i - 1; j += 1
     {
       if ARR[j].avg_depth > ARR[j + 1].avg_depth
       {
@@ -65,6 +70,8 @@ bubblesort :: proc(ARR : ^[dynamic]triangle_t, N : int)
         ARR[j] = ARR[j + 1]
         ARR[j + 1] = temp
         swapped = true
+
+        swaps += 1
       }
     }
 

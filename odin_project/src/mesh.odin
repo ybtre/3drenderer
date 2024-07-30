@@ -16,9 +16,11 @@ N_CUBE_FACES :: (6 * 2) //6 cube faces, 2 triangles per face
 /////////////////////////////////////////////////////////////////////
 mesh_t :: struct 
 {
-  vertices : [dynamic]vec3,
-  faces    : [dynamic]face_t,
-  rotation : vec3,
+  vertices    : [dynamic]vec3,
+  faces       : [dynamic]face_t,
+  rotation    : vec3,
+  scale       : vec3,
+  translation : vec3,
 }
 
 mesh : mesh_t
