@@ -135,7 +135,8 @@ update :: proc()
   // mesh.rotation.y += 0.01
   // mesh.rotation.z += 0.01
 
-  mesh.scale.x += 0.2
+  mesh.scale.x += 0.002
+  mesh.scale.y += 0.001
 
   //create a scale matrix that will be used to multiply mesh vertices
   scale_matrix := mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z)
