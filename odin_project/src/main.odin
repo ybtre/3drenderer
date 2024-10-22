@@ -2,6 +2,7 @@ package renderer
 
 import "core:fmt"
 import "core:mem"
+import "core:math"
 import sdl "vendor:sdl2"
 
 /////////////////////////////////////////////////////////////////////
@@ -17,7 +18,7 @@ is_running          : = false
 prev_frame_time     : u32
 
 camera_position     : vec3 = { 0, 0, 0 }
-fov_factor          : f32 = 640
+proj_matrix         : mat4
 
 toggle_wireframe        : bool = true
 toggle_vertex           : bool = true
@@ -48,6 +49,14 @@ setup :: proc()
     window_width,
     window_height,
   )
+
+  //Initialize the perspective projection matrix
+  fov    : f32 = math.PI / 3.0  // the same as 180 / 3 or 60deg
+  aspect : f32 = f32(window_height) / f32(window_width)
+  zNear  : f32 = 0.1
+  zFar   : f32 = 100.0
+  proj_matrix = mat4_make_perspective(fov, aspect, zNear, zFar)
+
 
   load_cube_mesh_data()
   mesh.scale = { 1, 1, 1 }
@@ -103,18 +112,6 @@ process_input :: proc() {
   }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Function that receives a 3D vector and returns a projectced 2D Point
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-project :: proc(POINT : vec3) -> vec2
-{
-  projected_point := vec2{
-    ( fov_factor * POINT.x ) / POINT.z,
-    ( fov_factor * POINT.y ) / POINT.z }
-
-  return projected_point
-}
-
 /////////////////////////////////////////////////////////////////////
 update :: proc()
 {
@@ -133,11 +130,11 @@ update :: proc()
  
   //change the mesh scale/rot values per animation frame
   mesh.rotation.x += 0.01
-  mesh.rotation.y += 0.01
-  mesh.rotation.z += 0.01
+  //mesh.rotation.y += 0.01
+  //mesh.rotation.z += 0.01
   // mesh.scale.x += 0.002
   // mesh.scale.y += 0.001
-  mesh.translation.x += 0.01
+  //mesh.translation.x += 0.01
   mesh.translation.z = 5
 
   //create a scale, rotation and translation matrices that will be used to multiply mesh vertices
@@ -231,31 +228,36 @@ update :: proc()
       center_end := vec3_add(center, scaled_normal)
 
       //project and translate center
-      projected_center := project(center)
+      projected_center := mat4_mul_vec4_project(proj_matrix, vec4_from_vec3(center))
       projected_center.x += f32(window_width /2)
       projected_center.y += f32(window_height /2)
 
       //project and translate center end
-      projected_end := project(center_end)
+      projected_end := mat4_mul_vec4_project(proj_matrix, vec4_from_vec3(center_end))
       projected_end.x += f32(window_width /2)
       projected_end.y += f32(window_height /2)
 
       normal_dbg : normal_DEBUG
-      normal_dbg.points[0] = projected_center
-      normal_dbg.points[1] = projected_end
+      normal_dbg.points[0] = { projected_center.x, projected_center.y }
+      normal_dbg.points[1] = { projected_end.x, projected_center.y }
 
       append(&normals_to_render_DEBUG, normal_dbg)
     }
 
-    projected_points : [3]vec2
+    projected_points : [3]vec4
 
     //Loop all three vertices to perform the projection
     for j in 0 ..< 3 
     {
       //project the current point
-      projected_points[j] = project(vec3_from_vec4(transformed_vertices[j]))
+      //projected_points[j] = project(vec3_from_vec4(transformed_vertices[j]))
+      projected_points[j] = mat4_mul_vec4_project(proj_matrix, transformed_vertices[j])
 
-      //scale and translate the projected points to the middle of the screen
+      //scale into the view
+      projected_points[j].x *= f32( window_width / 2.0 )
+      projected_points[j].y *= f32( window_height / 2.0 )
+
+      //translate the projected points to the middle of the screen
       projected_points[j].x += f32(window_width /2)
       projected_points[j].y += f32(window_height /2)
     }
@@ -264,9 +266,11 @@ update :: proc()
     avg_depth : f32 = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3
 
     projected_triangle : triangle_t = {
-      { projected_points[0], 
-        projected_points[1], 
-        projected_points[2] },
+      { 
+        { projected_points[0].x, projected_points[0].y },
+        { projected_points[1].x, projected_points[1].y },
+        { projected_points[2].x, projected_points[2].y },
+      },
       mesh_face.color,
       avg_depth,
     }

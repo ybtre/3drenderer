@@ -110,6 +110,40 @@ mat4_make_rotation_z :: proc(angle : f32) -> mat4
 }
 
 /////////////////////////////////////////////////////////////////////
+mat4_make_perspective :: proc(fov, aspect, zNear, zFar : f32) -> mat4 
+{
+    // | (h/w)*1/tan(fov/2)             0              0                 0 |
+    // |                  0  1/tan(fov/2)              0                 0 |
+    // |                  0             0     zf/(zf-zn)  (-zf*zn)/(zf-zn) |
+    // |                  0             0              1                 0 |
+  m : mat4 
+  m.m[0][0] = aspect * ( 1 / math.tan( fov / 2 ) )
+  m.m[1][1] = 1 / math.tan( fov / 2 )
+  m.m[2][2] = zFar / ( zFar - zNear )
+  m.m[2][3] = ( -zFar * zNear ) / ( zFar - zNear )
+  m.m[3][2] = 1.0
+
+  return m
+}
+
+/////////////////////////////////////////////////////////////////////
+mat4_mul_vec4_project :: proc(mat_proj : mat4, v : vec4) -> vec4
+{
+  //multiply the projection matrix by our original vector
+  result := mat4_mul_vec4(mat_proj, v)
+
+  //perform perspetive divide with original z-value that is now stored in w
+  if result.w != 0.0
+  {
+    result.x /= result.w
+    result.y /= result.w
+    result.z /= result.w
+  }
+
+  return result
+}
+
+/////////////////////////////////////////////////////////////////////
 mat4_mul_vec4 :: proc(m : mat4, v : vec4) -> vec4
 {
   result : vec4
