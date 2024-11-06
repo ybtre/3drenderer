@@ -58,11 +58,11 @@ setup :: proc()
   proj_matrix = mat4_make_perspective(fov, aspect, zNear, zFar)
 
 
-  load_cube_mesh_data()
-  mesh.scale = { 1, 1, 1 }
-  // load_obj_file_data("../assets/f22.obj")
+  // load_cube_mesh_data()
+  load_obj_file_data("../assets/f22.obj")
   // load_obj_file_data("../assets/cube.obj")
   // load_obj_file_data("../assets/race-future.obj")
+  mesh.scale = { 1, 1, 1 }
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -130,10 +130,10 @@ update :: proc()
  
   //change the mesh scale/rot values per animation frame
   mesh.rotation.x += 0.01
-  //mesh.rotation.y += 0.01
-  //mesh.rotation.z += 0.01
-  // mesh.scale.x += 0.002
-  // mesh.scale.y += 0.001
+  // mesh.rotation.y += 0.01
+  // mesh.rotation.z += 0.01
+   // mesh.scale.x += 0.002
+   // mesh.scale.y += 0.001
   //mesh.translation.x += 0.01
   mesh.translation.z = 5
 
@@ -149,6 +149,7 @@ update :: proc()
   for i in 0 ..< len(mesh.faces)
   {
     mesh_face : face_t = mesh.faces[i]
+    mesh_face.color = 0xFFFFFFFF
 
     face_vertices : [3]vec3 = {
       mesh.vertices[mesh_face.a - 1],
@@ -265,13 +266,19 @@ update :: proc()
     //Calculate the average depth for each face based on the vertices z value after transformation
     avg_depth : f32 = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3
 
+    //calculate the shade inetnsity based on how aligned is the face normal with the inverse light direction
+    light_intensity_factor : f32  = -vec3_dot(normal, light.direction)
+
+    //calculate the triangle color based on the light angle
+    triangle_color : u32 = light_apply_intensity(mesh_face.color, light_intensity_factor)
+
     projected_triangle : triangle_t = {
       { 
         { projected_points[0].x, projected_points[0].y },
         { projected_points[1].x, projected_points[1].y },
         { projected_points[2].x, projected_points[2].y },
       },
-      mesh_face.color,
+      triangle_color,
       avg_depth,
     }
 
@@ -287,7 +294,7 @@ update :: proc()
   {
     most_swaps = swaps
   }
-  fmt.println(most_swaps)
+  // fmt.println(most_swaps)
 }
 
 /////////////////////////////////////////////////////////////////////
