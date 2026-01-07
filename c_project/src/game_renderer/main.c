@@ -7,7 +7,7 @@ bool is_running = false;
 void setup(void) {
     // Allocate the required memory in bytes to hold the color buffer
     color_buffer = malloc((size_t)window_width * (size_t)window_height * sizeof *color_buffer);
-    ASSERTIF(!color_buffer, "Could not malloc color_buffer.\n")
+    ASSERTIF(!color_buffer, "Could not malloc color_buffer.\n");
 
     // Creating a SDL texture that is used to display the color buffer
     color_buffer_texture = SDL_CreateTexture(
@@ -44,7 +44,8 @@ void render(void) {
 
     draw_grid();
 
-    draw_rect(300, 200, 300, 150, 0xFFFF00FF);
+    draw_rect(100, 75, 50, 50, 0xFFFF00FF);
+    draw_rect(200, 100, 50, 50, 0xFFFF00FF);
 
     render_color_buffer();
 
