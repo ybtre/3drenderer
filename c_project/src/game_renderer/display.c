@@ -5,8 +5,8 @@ SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 uint32_t* color_buffer = NULL;
 SDL_Texture* color_buffer_texture = NULL;
-int window_width = 800;
-int window_height = 600;
+int window_width = 640;
+int window_height = 360;
 
 bool initialize_window(void) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -17,6 +17,7 @@ bool initialize_window(void) {
     // Set width and height of the SDL window with the max screen resolution
     SDL_DisplayMode display_mode;
     SDL_GetCurrentDisplayMode(0, &display_mode);
+    //use and overwrite window size to screen res
     window_width = display_mode.w;
     window_height = display_mode.h;
 
@@ -27,7 +28,8 @@ bool initialize_window(void) {
         SDL_WINDOWPOS_CENTERED,
         window_width,
         window_height,
-        SDL_WINDOW_BORDERLESS
+        // SDL_WINDOW_BORDERLESS
+        SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MOUSE_FOCUS | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_GRABBED
     );
     if (!window) {
         fprintf(stderr, "Error creating SDL window.\n");
@@ -63,11 +65,13 @@ void draw_rect(int x, int y, int width, int height, uint32_t color) {
 }
 
 void render_color_buffer(void) {
+    size_t bytes_per_row = (size_t)window_width * sizeof(int);
+    int pitch = (int)bytes_per_row;
     SDL_UpdateTexture(
         color_buffer_texture,
         NULL,
         color_buffer,
-        (int)(window_width * sizeof(uint32_t))
+        pitch
     );
     SDL_RenderCopy(renderer, color_buffer_texture, NULL, NULL);
 }
@@ -82,6 +86,7 @@ void clear_color_buffer(uint32_t color) {
 
 void destroy_window(void) {
     free(color_buffer);
+    color_buffer = NULL;
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
