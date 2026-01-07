@@ -44,6 +44,8 @@ void render(void) {
 
     draw_grid();
 
+    draw_pixel(20, 20, 0xFFFFFFFF);
+
     draw_rect(100, 75, 50, 50, 0xFFFF00FF);
     draw_rect(200, 100, 50, 50, 0xFFFF00FF);
 

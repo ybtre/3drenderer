@@ -64,6 +64,14 @@ void draw_rect(int x, int y, int width, int height, uint32_t color) {
     }
 }
 
+void draw_pixel(int x, int y, uint32_t color) {
+    if (x < window_width && x > 0
+        && y < window_height && y > 0)
+    {
+        color_buffer[(window_width * y) + x] = color;
+    }
+}
+
 void render_color_buffer(void) {
     size_t bytes_per_row = (size_t)window_width * sizeof(int);
     int pitch = (int)bytes_per_row;
