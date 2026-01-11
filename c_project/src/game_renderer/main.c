@@ -5,8 +5,15 @@
 
 //9x9x9 cube
 // Declare an array of vectors/points
+// //
 #define N_POINTS (9*9*9)
 vec3 cube_points[N_POINTS];
+vec2 projected_points[N_POINTS];
+
+vec3 cam_position = { 0, 0, -5 };
+vec3 cube_rotation = { 0, 0, 0 };
+
+float fov_factor = 640;
 
 bool is_running = false;
 
@@ -41,6 +48,17 @@ void setup(void) {
     }
 }
 
+//received vec3 and returns projected 2d point
+vec2 project (vec3 point){
+    vec2 projected_point =
+    {
+        .x = (fov_factor * point.x) / point.z,
+        .y = (fov_factor * point.y) / point.z
+    };
+
+    return projected_point;
+}
+
 void process_input(void) {
     SDL_Event event;
     SDL_PollEvent(&event);
@@ -57,22 +75,42 @@ void process_input(void) {
 }
 
 void update(void) {
-    // TODO:
+    cube_rotation.x += 0.005;
+    cube_rotation.y += 0.005;
+    cube_rotation.z += 0.005;
+
+    for(int i = 0; i < N_POINTS; i++){
+        vec3 point = cube_points[i];
+
+        vec3 transformed_point = vec3_rotate_x(point, cube_rotation.x);
+        transformed_point = vec3_rotate_y(transformed_point, cube_rotation.y);
+        transformed_point = vec3_rotate_z(transformed_point, cube_rotation.z);
+
+        //translate points away from camera
+        transformed_point.z -= cam_position.z;
+
+        //save the projects pont
+        projected_points[i] = project(transformed_point);
+    }
 }
 
 void render(void) {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
+    {
+        draw_grid();
 
-    draw_grid();
-
-    draw_pixel(20, 20, 0xFFFFFFFF);
-
-    draw_rect(100, 75, 50, 50, 0xFFFF00FF);
-    draw_rect(200, 100, 50, 50, 0xFFFF00FF);
+        //loop all projected points and render them
+        for(int i = 0; i < N_POINTS; i++){
+            vec2 proj_point = projected_points[i];
+            draw_rect(
+                proj_point.x + ((float)window_width / 2),
+                proj_point.y + ((float)window_height / 2),
+                4,
+                4,
+                0xFFFFFF00);
+        }
+    }
 
     render_color_buffer();
-
     clear_color_buffer(0xFF000000);
 
     SDL_RenderPresent(renderer);
