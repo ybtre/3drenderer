@@ -1,5 +1,7 @@
 #include "display.h"
 #include "common.h"
+#include <math.h>
+#include <stdint.h>
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
@@ -68,6 +70,30 @@ void draw_pixel(int x, int y, uint32_t color) {
     if (x < window_width && x >= 0 && y < window_height && y >= 0){
         color_buffer[(window_width * y) + x] = color;
     }
+}
+
+void draw_line(int x0, int y0, int x1, int y1, uint32_t color){
+    int delta_x = (x1-x0);
+    int delta_y = (y1-y0);
+
+    int longest_side_len = (abs(delta_x) >= abs(delta_y)) ? abs(delta_x) : abs(delta_y);
+
+    float x_inc = delta_x / (float)longest_side_len;
+    float y_inc = delta_y / (float)longest_side_len;
+
+    float current_x = x0;
+    float current_y = y0;
+    for(int i = 0; i <= longest_side_len; i++){
+        draw_pixel(round(current_x), round(current_y), color);
+        current_x += x_inc;
+        current_y += y_inc;
+    }
+}
+
+void draw_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color){
+    draw_line(x0, y0, x1, y1, color);
+    draw_line(x1, y1, x2, y2, color);
+    draw_line(x2, y2, x0, y0, color);
 }
 
 void render_color_buffer(void) {

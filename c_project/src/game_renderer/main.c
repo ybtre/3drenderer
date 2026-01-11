@@ -117,9 +117,19 @@ void render_cube(void){
     //loop all projected triangles and render them
     for(int i = 0; i < N_MESH_FACES; i++){
         triangle triangle = triangles_to_render[i];
+
+        //draw vertex points
         draw_rect(triangle.points[0].x, triangle.points[0].y, 4, 4, 0xFFFFFF00);
         draw_rect(triangle.points[1].x, triangle.points[1].y, 4, 4, 0xFFFFFF00);
         draw_rect(triangle.points[2].x, triangle.points[2].y, 4, 4, 0xFFFFFF00);
+
+        //draw unfilled triangle face
+        draw_triangle(
+            triangle.points[0].x, triangle.points[0].y,
+            triangle.points[1].x, triangle.points[1].y,
+            triangle.points[2].x, triangle.points[2].y,
+            0xFF0FF00
+        );
     }
 }
 
