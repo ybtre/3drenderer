@@ -1,6 +1,12 @@
 #include "common.h"
 
 #include "display.h"
+#include "vector.h"
+
+//9x9x9 cube
+// Declare an array of vectors/points
+#define N_POINTS (9*9*9)
+vec3 cube_points[N_POINTS];
 
 bool is_running = false;
 
@@ -17,6 +23,22 @@ void setup(void) {
         window_width,
         window_height
     );
+
+    // start loading arr of vectors
+    // from -1 to 1
+    int point_count = 0;
+    vec3 new_point = {0,0,0};
+    for (float x = -1; x <= 1; x+=.25f) {
+        for (float y = -1; y <= 1; y+=.25f) {
+            for (float z = -1; z <= 1; z+=.25f) {
+                new_point.x = x;
+                new_point.y = y;
+                new_point.z = z;
+                cube_points[point_count] = new_point;
+                point_count += 1;
+            }
+        }
+    }
 }
 
 void process_input(void) {
