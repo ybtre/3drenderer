@@ -3,16 +3,58 @@
 #include "display.h"
 #include "vector.h"
 #include "mesh.h"
+#include "array.h"
+#include <stdio.h>
 
-triangle triangles_to_render[N_MESH_FACES];
+triangle* triangles_to_render = NULL;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// Global vars for execution status and game loop
+//////////////////////////////////////////////////////////////////////////////////////////////////
+bool is_running = false;
+Uint64 previous_frame_time = 0;
 
 vec3 cam_position = { 0, 0, -5 };
-vec3 cube_rotation = { 0, 0, 0 };
 
 float fov_factor = 640;
 
-bool is_running = false;
-int previous_frame_time = 0;
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//FPS Counter related
+////////////////////////////////////////////////////////////////////////////////////////////////
+typedef struct {
+    Uint32 last_time;
+    Uint32 frame_count;
+    float fps;
+    float dt;
+    SDL_Renderer* renderer;
+} FPSCounter;
+
+void FPSCounter_init(FPSCounter* counter){
+    counter->last_time = 0;
+    counter->frame_count = 0;
+    counter->fps = 0.0f;
+    counter->dt = 0.0f;
+}
+
+void FPSCounter_update(FPSCounter* counter){
+    Uint32 current_time = SDL_GetTicks();
+    Uint32 frame_time = current_time - counter->last_time;
+
+    if(frame_time > 0){
+        counter->dt = (float)frame_time / 1000.0f;
+        counter->fps = 1.0f / counter->dt;
+    }
+
+    counter->last_time = current_time;
+    counter->frame_count++;
+
+    // Print to console only
+    printf("FPS: %.1f | Delta: %.3f\r", counter->fps, counter->dt);
+    fflush(stdout);
+}
+
+FPSCounter fps_counter;
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 void setup(void) {
     // Allocate the required memory in bytes to hold the color buffer
@@ -28,6 +70,9 @@ void setup(void) {
         window_height
     );
 
+    FPSCounter_init(&fps_counter);
+
+    load_cube_mesh_data();
 }
 
 //received vec3 and returns projected 2d point
@@ -56,18 +101,22 @@ void process_input(void) {
 }
 
 void update_cube(){
-    cube_rotation.x += 0.005;
-    cube_rotation.y += 0.005;
-    cube_rotation.z += 0.005;
+    MESH.rotation.x += 0.005f;
+    MESH.rotation.y += 0.005f;
+    MESH.rotation.z += 0.005f;
 
-    for(int i = 0; i < N_MESH_FACES; i++)
+    //init arr of triangles to render
+    triangles_to_render = NULL;
+
+    int num_faces = array_length(MESH.faces);
+    for(int i = 0; i < num_faces; i++)
     {
-        face mesh_face  = mesh_faces[i];
+        face mesh_face  = MESH.faces[i];
 
         vec3 face_verts[3];
-        face_verts[0] = mesh_vert[mesh_face.a - 1];
-        face_verts[1] = mesh_vert[mesh_face.b - 1];
-        face_verts[2] = mesh_vert[mesh_face.c - 1];
+        face_verts[0] = MESH.vertices[mesh_face.a - 1];
+        face_verts[1] = MESH.vertices[mesh_face.b - 1];
+        face_verts[2] = MESH.vertices[mesh_face.c - 1];
 
         triangle projected_triangle;
 
@@ -76,9 +125,9 @@ void update_cube(){
             vec3 transformed_vertex = face_verts[j];
 
             //apply rotation
-            transformed_vertex = vec3_rotate_x(transformed_vertex, cube_rotation.x);
-            transformed_vertex = vec3_rotate_y(transformed_vertex, cube_rotation.y);
-            transformed_vertex = vec3_rotate_z(transformed_vertex, cube_rotation.z);
+            transformed_vertex = vec3_rotate_x(transformed_vertex, MESH.rotation.x);
+            transformed_vertex = vec3_rotate_y(transformed_vertex, MESH.rotation.y);
+            transformed_vertex = vec3_rotate_z(transformed_vertex, MESH.rotation.z);
 
             //apply translation away from cam
             transformed_vertex.z -= cam_position.z;
@@ -93,15 +142,18 @@ void update_cube(){
         }
 
         //save the projected triangle in the array of triangles to render
-        triangles_to_render[i] = projected_triangle;
+        array_push(triangles_to_render, projected_triangle)
     }
 }
 
 void fixed_time_step(void){
-    int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks64() - previous_frame_time);
+    Uint64 current_time = SDL_GetTicks64();
+    Uint64 elapsed_time = current_time - previous_frame_time;
+    Uint64 time_to_wait = (Uint64)FRAME_TARGET_TIME - elapsed_time;
 
-    if(time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME){
-        SDL_Delay(time_to_wait);
+    Uint32 delay_time = (Uint32)(time_to_wait > INT_MAX ? INT_MAX : time_to_wait);
+    if (delay_time > 0 && delay_time <= FRAME_TARGET_TIME) {
+        SDL_Delay(delay_time);
     }
 
     previous_frame_time = SDL_GetTicks64();
@@ -110,26 +162,24 @@ void fixed_time_step(void){
 void update(void) {
     fixed_time_step();
 
+    FPSCounter_update(&fps_counter);
+
     update_cube();
 }
 
 void render_cube(void){
     //loop all projected triangles and render them
-    for(int i = 0; i < N_MESH_FACES; i++){
-        triangle triangle = triangles_to_render[i];
+    int num_triangles = array_length(triangles_to_render);
+    for(int i = 0; i < num_triangles; i++){
+        triangle tri = triangles_to_render[i];
 
         //draw vertex points
-        draw_rect(triangle.points[0].x, triangle.points[0].y, 4, 4, 0xFFFFFF00);
-        draw_rect(triangle.points[1].x, triangle.points[1].y, 4, 4, 0xFFFFFF00);
-        draw_rect(triangle.points[2].x, triangle.points[2].y, 4, 4, 0xFFFFFF00);
+        draw_rect((int)tri.points[0].x, (int)tri.points[0].y, 4, 4, 0xFFFF0000);
+        draw_rect((int)tri.points[1].x, (int)tri.points[1].y, 4, 4, 0xFFFF0000);
+        draw_rect((int)tri.points[2].x, (int)tri.points[2].y, 4, 4, 0xFFFF0000);
 
         //draw unfilled triangle face
-        draw_triangle(
-            triangle.points[0].x, triangle.points[0].y,
-            triangle.points[1].x, triangle.points[1].y,
-            triangle.points[2].x, triangle.points[2].y,
-            0xFF0FF00
-        );
+        draw_triangle_from_triangle(tri, 0xFF00FF00);
     }
 }
 
@@ -140,10 +190,24 @@ void render(void) {
         render_cube();
     }
 
+    //clear arr triangles to render every frame loop
+    array_free(triangles_to_render);
+
     render_color_buffer();
     clear_color_buffer(0xFF000000);
 
     SDL_RenderPresent(renderer);
+}
+
+
+void free_resources(void){
+   free(color_buffer);
+   array_free(MESH.faces);
+   array_free(MESH.vertices);
+
+   color_buffer = NULL;
+   MESH.faces = NULL;
+   MESH.vertices = NULL;
 }
 
 int main(int argc, char* argv[])
@@ -163,6 +227,7 @@ int main(int argc, char* argv[])
     }
 
     destroy_window();
+    free_resources();
 
     return 0;
 }

@@ -78,19 +78,31 @@ void draw_line(int x0, int y0, int x1, int y1, uint32_t color){
 
     int longest_side_len = (abs(delta_x) >= abs(delta_y)) ? abs(delta_x) : abs(delta_y);
 
-    float x_inc = delta_x / (float)longest_side_len;
-    float y_inc = delta_y / (float)longest_side_len;
+    float x_inc = (float)delta_x / (float)longest_side_len;
+    float y_inc = (float)delta_y / (float)longest_side_len;
 
-    float current_x = x0;
-    float current_y = y0;
+    float current_x = (float)x0;
+    float current_y = (float)y0;
     for(int i = 0; i <= longest_side_len; i++){
-        draw_pixel(round(current_x), round(current_y), color);
+        draw_pixel((int)round(current_x), (int)round(current_y), color);
         current_x += x_inc;
         current_y += y_inc;
     }
 }
 
-void draw_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color){
+void draw_triangle_from_points(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color){
+    draw_line(x0, y0, x1, y1, color);
+    draw_line(x1, y1, x2, y2, color);
+    draw_line(x2, y2, x0, y0, color);
+}
+
+void draw_triangle_from_triangle(triangle tri, uint32_t color){
+    int x0 = (int)tri.points[0].x;
+    int y0 = (int)tri.points[0].y;
+    int x1 = (int)tri.points[1].x;
+    int y1 = (int)tri.points[1].y;
+    int x2 = (int)tri.points[2].x;
+    int y2 = (int)tri.points[2].y;
     draw_line(x0, y0, x1, y1, color);
     draw_line(x1, y1, x2, y2, color);
     draw_line(x2, y2, x0, y0, color);
@@ -117,8 +129,6 @@ void clear_color_buffer(uint32_t color) {
 }
 
 void destroy_window(void) {
-    free(color_buffer);
-    color_buffer = NULL;
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();

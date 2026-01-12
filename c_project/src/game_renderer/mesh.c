@@ -1,7 +1,15 @@
+#include <stdio.h>
 #include "mesh.h"
+#include "array.h"
+
+mesh MESH = {
+    .vertices = NULL,
+    .faces = NULL,
+    .rotation = { 0, 0, 0 }
+};
 
 //create impl for mesh.h functions
-vec3 mesh_vert[N_MESH_VERTICES] = {
+vec3 cube_vert[N_CUBE_VERTICES] = {
     { .x = -1, .y = -1, .z = -1 }, //1
     { .x = -1, .y =  1, .z = -1 }, //2
     { .x =  1, .y =  1, .z = -1 }, //3
@@ -12,7 +20,7 @@ vec3 mesh_vert[N_MESH_VERTICES] = {
     { .x = -1, .y = -1, .z =  1 } //8
 };
 
-face mesh_faces[N_MESH_FACES] = {
+face cube_faces[N_CUBE_FACES] = {
     //front
     { .a = 1, .b = 2, .c = 3 },
     { .a = 1, .b = 3, .c = 4 },
@@ -32,3 +40,12 @@ face mesh_faces[N_MESH_FACES] = {
     { .a = 6, .b = 8, .c = 1 },
     { .a = 6, .b = 1, .c = 4 },
 };
+
+void load_cube_mesh_data(void){
+    for(int i = 0; i < N_CUBE_VERTICES; i++){
+        array_push(MESH.vertices, cube_vert[i]);
+    }
+    for(int i = 0; i < N_CUBE_FACES; i++){
+        array_push(MESH.faces, cube_faces[i]);
+    }
+}
