@@ -14,7 +14,7 @@ triangle* triangles_to_render = NULL;
 bool is_running = false;
 Uint64 previous_frame_time = 0;
 
-vec3 cam_position = { 0, 0, -5 };
+vec3 cam_position = { 0, 0, 0 };
 
 float fov_factor = 640;
 
@@ -74,7 +74,10 @@ void setup(void) {
 
     //
     // load_cube_mesh_data();
-    load_obj_file_data("./assets/well.obj");
+    // load_obj_file_data("./assets/cube.obj");
+    // load_obj_file_data("./assets/castle.obj");
+    // load_obj_file_data("./assets/well.obj");
+    load_obj_file_data("./assets/f22.obj");
 }
 
 //received vec3 and returns projected 2d point
@@ -103,7 +106,7 @@ void process_input(void) {
 }
 
 void update_cube(){
-    // MESH.rotation.x += 0.005f;
+    MESH.rotation.x += 0.005f;
     MESH.rotation.y += 0.005f;
     // MESH.rotation.z += 0.005f;
 
@@ -122,6 +125,8 @@ void update_cube(){
 
         triangle projected_triangle;
 
+        vec3 transformed_vertices[3];
+
         //loop all 3 verts of this current face and apply transformations
         for(int j = 0; j < 3; j++){
             vec3 transformed_vertex = face_verts[j];
@@ -132,9 +137,40 @@ void update_cube(){
             transformed_vertex = vec3_rotate_z(transformed_vertex, MESH.rotation.z);
 
             //apply translation away from cam
-            transformed_vertex.z -= cam_position.z;
+            transformed_vertex.z += -3;
 
-            vec2 projected_point = project(transformed_vertex);
+            //save transformed vertex in the array of transformed vertices
+            transformed_vertices[j] = transformed_vertex;
+        }
+
+        //check backface culling
+        vec3 vector_a = transformed_vertices[0];    /*   A      */
+        vec3 vector_b = transformed_vertices[1];    /*  / \     */
+        vec3 vector_c = transformed_vertices[2];    /* C---B    */
+
+        //get the vector subtraction of B-A and C-A
+        vec3 vector_ab = vec3_sub(vector_b, vector_a);
+        vec3 vector_ac = vec3_sub(vector_c, vector_a);
+
+        //compute the face normal (using cross product to find perpendicular)
+        vec3 normal = vec3_cross(vector_ab, vector_ac);
+        //normalize the normal vector
+        vec3_normalize(&normal);
+
+        //find the vector between a point in the triangle and the camera origin
+        vec3 camera_ray = vec3_sub(cam_position, vector_a);
+
+        //calculate how aligned the camera ray is with the face normal using dot product
+        float dot_normal_camera = vec3_dot(normal, camera_ray);
+
+        //bypass the triangles that are looking away from the camera
+        if(dot_normal_camera < 0){
+            continue;
+        }
+
+        //loop all 3 verts and perform projection
+        for(int j = 0; j < 3; j++){
+            vec2 projected_point = project(transformed_vertices[j]);
 
             //scale and translare proj point to the middle of the screen
             projected_point.x += ((float)window_width / 2);
@@ -155,7 +191,7 @@ void fixed_time_step(void){
 
     Uint32 delay_time = (Uint32)(time_to_wait > INT_MAX ? INT_MAX : time_to_wait);
     if (delay_time > 0 && delay_time <= FRAME_TARGET_TIME) {
-        SDL_Delay(delay_time);
+        // SDL_Delay(delay_time);
     }
 
     previous_frame_time = SDL_GetTicks64();

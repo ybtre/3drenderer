@@ -41,6 +41,12 @@ float vec2_dot(vec2 a, vec2 b){
     return (a.x * b.x) + (a.y * b.y);
 }
 
+void vec2_normalize(vec2 *v){
+    float length = vec2_len(*v);
+    v->x /= length;
+    v->y /= length;
+}
+
 float vec3_len(vec3 v){
     return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
 }
@@ -125,4 +131,11 @@ vec3 vec3_rotate_z(vec3 v, float angle){
         .z = v.z
     };
     return rotated_vec;
+}
+
+void vec3_normalize(vec3* v){
+    float length = vec3_len(*v);
+    v->x /= length;
+    v->y /= length;
+    v->z /= length;
 }
