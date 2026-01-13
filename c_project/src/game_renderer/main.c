@@ -216,8 +216,11 @@ void render_cube(void){
         draw_rect((int)tri.points[1].x, (int)tri.points[1].y, 4, 4, 0xFFFF0000);
         draw_rect((int)tri.points[2].x, (int)tri.points[2].y, 4, 4, 0xFFFF0000);
 
+        //draw filled triangle face
+        draw_filled_triangle_from_triangle(tri, 0xFFFFFFFF);
+
         //draw unfilled triangle face
-        draw_triangle_from_triangle(tri, 0xFF00FF00);
+        draw_triangle_from_triangle(tri, 0xFF000000);
     }
 }
 
@@ -226,6 +229,11 @@ void render(void) {
         draw_grid();
 
         render_cube();
+
+        // triangle tr = {
+        //     300, 100, 50, 400, 500, 700
+        // };
+        // draw_filled_triangle_from_triangle(tr, 0xFFFF0000);
     }
 
     //clear arr triangles to render every frame loop
