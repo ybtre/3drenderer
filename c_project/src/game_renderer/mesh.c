@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "mesh.h"
 #include "array.h"
 
@@ -48,4 +49,39 @@ void load_cube_mesh_data(void){
     for(int i = 0; i < N_CUBE_FACES; i++){
         array_push(MESH.faces, cube_faces[i]);
     }
+}
+
+void load_obj_file_data(char* filename){
+    FILE* file;
+    file = fopen(filename, "r");
+
+    int max_file_lines = 1024;
+    char line[max_file_lines];
+    while(fgets(line, max_file_lines, file)){
+        //vertex info
+        if(strncmp(line, "v ", 2) == 0){
+            vec3 vertex;
+            sscanf_s(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
+            array_push(MESH.vertices, vertex);
+        }
+        //face info
+        if(strncmp(line, "f ", 2) == 0){
+            int vertex_indices[3];
+            int texture_indices[3];
+            int normal_indices[3];
+            sscanf(
+                line, "f %d/%d/%d %d/%d/%d %d/%d/%d",
+                &vertex_indices[0], &texture_indices[0], &normal_indices[0],
+                &vertex_indices[1], &texture_indices[1], &normal_indices[1],
+                &vertex_indices[2], &texture_indices[2], &normal_indices[2]
+            );
+            face f = {
+                .a = vertex_indices[0],
+                .b = vertex_indices[1],
+                .c = vertex_indices[2]
+            };
+            array_push(MESH.faces, f);
+        }
+    }
+    fclose(file);
 }

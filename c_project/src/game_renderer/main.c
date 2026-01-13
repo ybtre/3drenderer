@@ -72,7 +72,9 @@ void setup(void) {
 
     FPSCounter_init(&fps_counter);
 
-    load_cube_mesh_data();
+    //
+    // load_cube_mesh_data();
+    load_obj_file_data("./assets/well.obj");
 }
 
 //received vec3 and returns projected 2d point
@@ -101,9 +103,9 @@ void process_input(void) {
 }
 
 void update_cube(){
-    MESH.rotation.x += 0.005f;
+    // MESH.rotation.x += 0.005f;
     MESH.rotation.y += 0.005f;
-    MESH.rotation.z += 0.005f;
+    // MESH.rotation.z += 0.005f;
 
     //init arr of triangles to render
     triangles_to_render = NULL;

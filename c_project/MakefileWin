@@ -1,6 +1,6 @@
 #make -f MakefileWin build run
 
-OBJS            = ./src/game_renderer/*.c
+OBJS            = $(wildcard ./src/game_renderer/*.c)
 
 COMPILER        = gcc
 
@@ -12,7 +12,7 @@ COMPILER_FLAGS = -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wformat=2 -Wundef -
 
 LINKER_FLAGS    = -lSDL2 -lSDL2main -lSDL2_image -lSDL2_mixer -lSDL2_ttf
 
-EXE_NAME        = ./build/Renderer
+EXE_NAME        = ./build/Renderer.exe
 
 
 build: $(OBJS)
@@ -20,6 +20,3 @@ build: $(OBJS)
 
 run:
 	./build/Renderer.exe
-
-clean:
-	rm ./build
