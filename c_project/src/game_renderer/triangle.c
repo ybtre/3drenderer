@@ -10,30 +10,30 @@ void int_swap(int* a, int* b){
 
 void fill_flat_bottom_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color){
    //find the two slopes(two triangle legs)
-   float inv_slope_1 = (float)(x1 - x0) / (y1 - y0);
-   float inv_slope_2 = (float)(x2 - x0) / (y2 - y0);
+   float inv_slope_1 = (float)(x1 - x0) / (float)(y1 - y0);
+   float inv_slope_2 = (float)(x2 - x0) / (float)(y2 - y0);
 
    //start x_start and x_end from the top vertex
-   float x_start = x0;
-   float x_end = x0;
+   float x_start = (float)x0;
+   float x_end = (float)x0;
 
    //loop all the scanlines from top to bottom
    for(int y = y0; y <= y2; y++){
-       draw_line(x_start, y, x_end, y, color);
+       draw_line((int)x_start, y, (int)x_end, y, color);
        x_start += inv_slope_1;
        x_end += inv_slope_2;
    }
 }
 
 void fill_flat_top_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color){
-    float inv_slope_1 = (float)(x2 - x0) / (y2 - y0);
-    float inv_slope_2 = (float)(x2 - x1) / (y2 - y1);
+    float inv_slope_1 = (float)(x2 - x0) / (float)(y2 - y0);
+    float inv_slope_2 = (float)(x2 - x1) / (float)(y2 - y1);
 
-    float x_start = x2;
-    float x_end = x2;
+    float x_start = (float)x2;
+    float x_end = (float)x2;
 
     for(int y = y2; y >= y0; y--){
-        draw_line(x_start, y, x_end, y, color);
+        draw_line((int)x_start, y, (int)x_end, y, color);
         x_start -= inv_slope_1;
         x_end -= inv_slope_2;
     }
@@ -69,7 +69,7 @@ void draw_filled_triangle_from_triangle(triangle tri, uint32_t color){
     else{
             //calc the new vertex (Mx,My) using triangle similarity
             int My = y1;
-            int Mx = ((float)((x2 - x0) * (y1 - y0)) / (float)(y2 - y0)) + x0;
+            int Mx = (int)(((float)((float)(x2 - x0) * (float)(y1 - y0)) / (float)(y2 - y0)) + (float)x0);
 
             //drawe flat-bottom triangle
             fill_flat_bottom_triangle(x0, y0, x1, y1, Mx, My, color);

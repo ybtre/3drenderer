@@ -74,10 +74,10 @@ void setup(void) {
 
     //
     // load_cube_mesh_data();
-    // load_obj_file_data("./assets/cube.obj");
+    load_obj_file_data("./assets/cube.obj");
     // load_obj_file_data("./assets/castle.obj");
     // load_obj_file_data("./assets/well.obj");
-    load_obj_file_data("./assets/f22.obj");
+    // load_obj_file_data("./assets/f22.obj");
 }
 
 //received vec3 and returns projected 2d point
@@ -217,10 +217,10 @@ void render_cube(void){
         draw_rect((int)tri.points[2].x, (int)tri.points[2].y, 4, 4, 0xFFFF0000);
 
         //draw filled triangle face
-        draw_filled_triangle_from_triangle(tri, 0xFFFFFFFF);
+        draw_filled_triangle_from_triangle(tri, 0xFF000000);
 
         //draw unfilled triangle face
-        draw_triangle_from_triangle(tri, 0xFF000000);
+        draw_triangle_from_triangle(tri, 0xFFFFFFFF);
     }
 }
 
