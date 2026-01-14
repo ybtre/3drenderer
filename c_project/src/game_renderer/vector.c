@@ -139,3 +139,24 @@ void vec3_normalize(vec3* v){
     v->y /= length;
     v->z /= length;
 }
+
+vec4 vec4_from_vec3(vec3 v){
+    vec4 res = {
+        .x = v.x,
+        .y = v.y,
+        .z = v.z,
+        .w = 1.0f
+    };
+
+    return res;
+}
+
+vec3 vec3_from_vec4(vec4 v){
+    vec3 res = {
+        .x = v.x,
+        .y = v.y,
+        .z = v.z,
+    };
+
+    return res;
+}

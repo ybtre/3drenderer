@@ -6,7 +6,9 @@
 mesh MESH = {
     .vertices = NULL,
     .faces = NULL,
-    .rotation = { 0, 0, 0 }
+    .rotation = { 0, 0, 0 },
+    .scale = { 1.0f, 1.0f, 1.0f },
+    .translation = { 0, 0, 0 }
 };
 
 //create impl for mesh.h functions
