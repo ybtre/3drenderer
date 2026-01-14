@@ -17,8 +17,7 @@ bool is_running = false;
 Uint64 previous_frame_time = 0;
 
 vec3 cam_position = { 0, 0, 0 };
-
-float fov_factor = 640;
+mat4_t proj_matrix;
 
 enum cull_method{
     CULL_NONE,
@@ -89,22 +88,19 @@ void setup(void) {
 
     FPSCounter_init(&fps_counter);
 
+    //init perspective projection matrix
+    float fov = (float)M_PI / 3.0f;
+    float aspect = (float)window_height / (float)window_width;
+    float znear = 0.1f;
+    float zfar = 100.0f;
+    proj_matrix = mat4_make_perspective(fov, aspect, znear, zfar);
+
     //
     // load_cube_mesh_data();
     load_obj_file_data("./assets/cube.obj");
     // load_obj_file_data("./assets/castle.obj");
     // load_obj_file_data("./assets/well.obj");
     // load_obj_file_data("./assets/f22.obj");
-}
-
-//received vec3 and returns projected 2d point
-vec2 project (vec3 point){
-    vec2 projected_point =
-    {
-        .x = (fov_factor * point.x) / point.z,
-        .y = (fov_factor * point.y) / point.z
-    };
-    return projected_point;
 }
 
 void process_input(void) {
@@ -136,14 +132,14 @@ void process_input(void) {
 
 void update_mesh(){
     MESH.rotation.x += 0.005f;
-    MESH.rotation.y += 0.005f;
-    MESH.rotation.z += 0.005f;
+    // MESH.rotation.y += 0.005f;
+    // MESH.rotation.z += 0.005f;
 
-    MESH.scale.x += 0.0008f;
-    MESH.scale.y += 0.0008f;
+    // MESH.scale.x += 0.0008f;
+    // MESH.scale.y += 0.0008f;
 
-    MESH.translation.x += 0.005f;
-    MESH.translation.y += 0.001f;
+    // MESH.translation.x += 0.005f;
+    // MESH.translation.y += 0.001f;
     MESH.translation.z = -3;
 
     mat4_t scale_martix = mat4_make_scale(MESH.scale.x, MESH.scale.y, MESH.scale.z);
@@ -217,23 +213,34 @@ void update_mesh(){
             }
         }
 
-        triangle projected_triangle;
+        vec4 projected_points[3];
 
-        //loop all 3 verts and perform projection
-        for(int j = 0; j < 3; j++){
-            vec2 projected_point = project(vec3_from_vec4(transformed_vertices[j]));
+        // Loop all three vertices to perform projection
+        for (int j = 0; j < 3; j++) {
+            // Project the current vertex
+            projected_points[j] = mat4_mul_vec4_project(proj_matrix, transformed_vertices[j]);
 
-            //scale and translare proj point to the middle of the screen
-            projected_point.x += ((float)window_width / 2);
-            projected_point.y += ((float)window_height /2);
+            // Scale into the view
+            projected_points[j].x *= ((float)window_width / 2.0f);
+            projected_points[j].y *= ((float)window_height / 2.0f);
 
-            //calculate the average depth for each face based on the vertices after transformation z value
-            float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3;
-
-            projected_triangle.points[j] = projected_point;
-            projected_triangle.color = mesh_face.color;
-            projected_triangle.avg_depth = avg_depth;
+            // Translate the projected points to the middle of the screen
+            projected_points[j].x += ((float)window_width / 2.0f);
+            projected_points[j].y += ((float)window_height / 2.0f);
         }
+
+        // Calculate the average depth for each face based on the vertices after transformation
+        float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3.0f;
+
+        triangle projected_triangle = {
+            .points = {
+                { projected_points[0].x, projected_points[0].y },
+                { projected_points[1].x, projected_points[1].y },
+                { projected_points[2].x, projected_points[2].y },
+            },
+            .color = mesh_face.color,
+            .avg_depth = avg_depth
+        };
 
         //save the projected triangle in the array of triangles to render
         array_push(triangles_to_render, projected_triangle)
