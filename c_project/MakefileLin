@@ -1,0 +1,31 @@
+#make -f MakefileLin build run
+
+CC      = gcc
+TARGET  = build/Renderer_lin
+
+OBJ     = $(wildcard ./src/game_renderer/*.c)
+
+PKG     = sdl2 SDL2_image SDL2_mixer SDL2_ttf
+
+CFLAGS  = -std=c11 -Wall -Wextra -Wpedantic -O0 -g $(shell pkg-config --cflags $(PKG))
+LDLIBS  = $(shell pkg-config --libs $(PKG)) -lm
+
+all: $(TARGET)
+
+$(TARGET): $(OBJ) | build
+	$(CC) $(OBJ) -o $@ $(LDLIBS)
+
+build/%.o: src/%.c | build
+	$(CC) $(CFLAGS) -c $< -o $@
+
+build:
+	mkdir -p build
+
+run: all
+	./$(TARGET)
+
+clean:
+	rm -rf build
+
+.PHONY: all run clean
+

@@ -63,7 +63,7 @@ void load_obj_file_data(char* filename){
         //vertex info
         if(strncmp(line, "v ", 2) == 0){
             vec3 vertex;
-            sscanf_s(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
+            sscanf(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
             array_push(MESH.vertices, vertex);
         }
         //face info
