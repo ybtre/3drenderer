@@ -1,47 +1,49 @@
-#make -f MakefileMac build run
+# MakefileMac
+# usage:
+#   make -f MakefileMac build
+#   make -f MakefileMac run
+#   make -f MakefileMac clean
 
-# Detect OS
-OS := $(shell uname -s)
+SRC_DIR   := src/game_renderer
+OBJ_DIR   := build/obj
+BUILD_DIR := build
+TARGET    := $(BUILD_DIR)/Renderer
 
-# Source files
-SRC_DIR     = ./src/game_renderer
-SRC_FILES   = $(wildcard $(SRC_DIR)/*.c)
-OBJ_FILES   = $(patsubst $(SRC_DIR)/%.c, $(SRC_DIR)/%.o, $(SRC_FILES))
+SRCS := $(wildcard $(SRC_DIR)/*.c)
+OBJS := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
 
-# Compiler and flags
-COMPILER        = gcc
-INCLUDE_PATHS   = -Isrc/include/
-COMPILER_FLAGS  = -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wformat=2 -Wundef -Wconversion -Wsign-conversion -g3 -O0 -fno-omit-frame-pointer
+CC := clang
 
-# Library paths and flags
-LIBRARY_PATHS   =
-LINKER_FLAGS    = -lSDL2 -lm
+WARN_FLAGS := -Wall -Wextra -Wpedantic -Wshadow -Wformat=2 -Wundef -Wconversion -Wsign-conversion
+DBG_FLAGS  := -g3 -O0 -fno-omit-frame-pointer
+CFLAGS     := -std=c11 $(WARN_FLAGS) $(DBG_FLAGS)
 
-# Platform-specific settings
-ifeq ($(OS),Darwin)
-    # macOS: Use dynamic libraries from Homebrew
-    LIBRARY_PATHS   = -L/opt/homebrew/Cellar/sdl2/2.32.10/lib
-    LINKER_FLAGS    += -lSDL2main
-else
-    # Linux/Other: Use static libraries from src/lib/
-    LIBRARY_PATHS   = -Lsrc/lib
-    LINKER_FLAGS    += -lSDL2main -lSDL2_image -lSDL2_mixer -lSDL2_ttf
-endif
+INCLUDES := -Isrc/include
 
-# Output
-EXE_NAME        = ./build/Renderer
-APP_NAME        = ./build/Renderer.app/Contents/MacOS/Renderer
+# Prefer sdl2-config (Homebrew installs it); fall back to pkg-config.
+SDL_CFLAGS := $(shell sdl2-config --cflags 2>/dev/null || pkg-config --cflags sdl2 2>/dev/null)
+SDL_LIBS   := $(shell sdl2-config --libs   2>/dev/null || pkg-config --libs   sdl2 2>/dev/null)
 
-# Targets
-build: $(OBJ_FILES)
-	$(COMPILER) $(OBJ_FILES) -o $(EXE_NAME) $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(COMPILER_FLAGS) $(LINKER_FLAGS)
+LDFLAGS := $(SDL_LIBS)
 
-run:
-ifeq ($(OS),Darwin)
-	./build/Renderer
-else
-	./build/Renderer
-endif
+.PHONY: build run clean
+
+build: $(TARGET)
+
+$(TARGET): $(OBJS) | $(BUILD_DIR)
+	$(CC) $(OBJS) -o $@ $(LDFLAGS)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) $(SDL_CFLAGS) -c $< -o $@
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
+
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
+
+run: build
+	./$(TARGET)
 
 clean:
-	rm -rf ./build
+	rm -rf $(BUILD_DIR)
