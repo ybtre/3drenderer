@@ -1,22 +1,66 @@
-#make -f MakefileWin build run
+# MakefileWin (MinGW-w64 gcc, run with mingw32-make or make from MSYS2/Git Bash)
+# usage:
+#   make -f MakefileWin build
+#   make -f MakefileWin run
+#   make -f MakefileWin clean
 
-OBJS            = $(wildcard ./src/game_renderer/*.c)
+SRC_DIR   := src/game_renderer
+OBJ_DIR   := build/obj
+BUILD_DIR := build
+TARGET    := $(BUILD_DIR)/Renderer.exe
 
-COMPILER        = gcc
+SRCS := $(wildcard $(SRC_DIR)/*.c)
+OBJS := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
+DEPS := $(OBJS:.o=.d)
 
-INCLUDE_PATHS   = -Isrc/include/
+CC := gcc
 
-LIBRARY_PATHS   = -Lsrc/lib/
+WARN_FLAGS := -Wall -Wextra -Wpedantic -Wshadow -Wformat=2 -Wundef -Wconversion -Wsign-conversion
+DBG_FLAGS  := -g3 -O0 -fno-omit-frame-pointer
+CFLAGS     := -std=c11 $(WARN_FLAGS) $(DBG_FLAGS) -MMD -MP
 
-COMPILER_FLAGS = -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wformat=2 -Wundef -Wconversion -Wsign-conversion -g3 -O0 -fno-omit-frame-pointer
+# Bundled SDL2 (x86_64 MinGW) headers and import libs; DLLs sit next to the exe.
+SDL_CFLAGS := -Isrc/include/SDL2
+SDL_LIBS   := -Lsrc/lib -lmingw32 -lSDL2main -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lSDL2
 
-LINKER_FLAGS    = -lSDL2 -lSDL2main -lSDL2_image -lSDL2_mixer -lSDL2_ttf
+LDLIBS := $(SDL_LIBS)
 
-EXE_NAME        = ./build/Renderer.exe
+# mingw32-make uses sh.exe when it finds one on PATH, otherwise cmd.exe
+# (where echo keeps the quotes).
+ifeq ($(shell echo "sh"),sh)
+    MKDIR  = mkdir -p $(1)
+    RMDIR  = rm -rf $(1)
+    RMFILE = rm -f $(1)
+    RUN    = ./$(TARGET)
+else
+    MKDIR  = if not exist $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
+    RMDIR  = if exist $(subst /,\,$(1)) rmdir /s /q $(subst /,\,$(1))
+    RMFILE = if exist $(subst /,\,$(1)) del /q $(subst /,\,$(1))
+    RUN    = $(subst /,\,$(TARGET))
+endif
 
+.PHONY: all build run clean
 
-build: $(OBJS)
-	$(COMPILER) $(OBJS) -o $(EXE_NAME) $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(COMPILER_FLAGS) $(LINKER_FLAGS)
+all: build
 
-run:
-	./build/Renderer.exe
+build: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(OBJS) -o $@ $(LDLIBS)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	$(CC) $(CFLAGS) $(SDL_CFLAGS) -c $< -o $@
+
+# Also creates build/ (not a separate rule: it would clash with the 'build' target).
+$(OBJ_DIR):
+	$(call MKDIR,$(OBJ_DIR))
+
+run: build
+	$(RUN)
+
+# build/ also holds tracked assets, fonts and DLLs; only remove build outputs.
+clean:
+	$(call RMDIR,$(OBJ_DIR))
+	$(call RMFILE,$(TARGET))
+
+-include $(DEPS)

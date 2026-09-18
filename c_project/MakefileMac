@@ -11,39 +11,44 @@ TARGET    := $(BUILD_DIR)/Renderer
 
 SRCS := $(wildcard $(SRC_DIR)/*.c)
 OBJS := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
+DEPS := $(OBJS:.o=.d)
 
 CC := clang
 
+PKG := sdl2 SDL2_image SDL2_mixer SDL2_ttf
+
 WARN_FLAGS := -Wall -Wextra -Wpedantic -Wshadow -Wformat=2 -Wundef -Wconversion -Wsign-conversion
 DBG_FLAGS  := -g3 -O0 -fno-omit-frame-pointer
-CFLAGS     := -std=c11 $(WARN_FLAGS) $(DBG_FLAGS)
+CFLAGS     := -std=c11 $(WARN_FLAGS) $(DBG_FLAGS) -MMD -MP
 
-INCLUDES := -Isrc/include
+# Prefer pkg-config (brew install pkg-config); fall back to sdl2-config, which
+# Homebrew's sdl2 ships. SDL2_image/mixer/ttf headers live in the same dir.
+SDL_CFLAGS := $(shell pkg-config --cflags $(PKG) 2>/dev/null || sdl2-config --cflags 2>/dev/null)
+SDL_LIBS   := $(shell pkg-config --libs   $(PKG) 2>/dev/null || echo `sdl2-config --libs 2>/dev/null` -lSDL2_image -lSDL2_mixer -lSDL2_ttf)
 
-# Prefer sdl2-config (Homebrew installs it); fall back to pkg-config.
-SDL_CFLAGS := $(shell sdl2-config --cflags 2>/dev/null || pkg-config --cflags sdl2 2>/dev/null)
-SDL_LIBS   := $(shell sdl2-config --libs   2>/dev/null || pkg-config --libs   sdl2 2>/dev/null)
+LDLIBS := $(SDL_LIBS)
 
-LDFLAGS := $(SDL_LIBS)
+.PHONY: all build run clean
 
-.PHONY: build run clean
+all: build
 
 build: $(TARGET)
 
-$(TARGET): $(OBJS) | $(BUILD_DIR)
-	$(CC) $(OBJS) -o $@ $(LDFLAGS)
+$(TARGET): $(OBJS)
+	$(CC) $(OBJS) -o $@ $(LDLIBS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
-	$(CC) $(CFLAGS) $(INCLUDES) $(SDL_CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(SDL_CFLAGS) -c $< -o $@
 
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
-
+# Also creates build/ (not a separate rule: it would clash with the 'build' target).
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
 
 run: build
 	./$(TARGET)
 
+# build/ also holds tracked assets, fonts and DLLs; only remove build outputs.
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(OBJ_DIR) $(TARGET) $(TARGET).dSYM
+
+-include $(DEPS)

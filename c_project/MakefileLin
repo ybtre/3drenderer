@@ -1,31 +1,52 @@
-#make -f MakefileLin build run
+# MakefileLin
+# usage:
+#   make -f MakefileLin build
+#   make -f MakefileLin run
+#   make -f MakefileLin clean
 
-CC      = gcc
-TARGET  = build/Renderer_lin
+SRC_DIR   := src/game_renderer
+OBJ_DIR   := build/obj
+BUILD_DIR := build
+TARGET    := $(BUILD_DIR)/Renderer_lin
 
-OBJ     = $(wildcard ./src/game_renderer/*.c)
+SRCS := $(wildcard $(SRC_DIR)/*.c)
+OBJS := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
+DEPS := $(OBJS:.o=.d)
 
-PKG     = sdl2 SDL2_image SDL2_mixer SDL2_ttf
+CC := gcc
 
-CFLAGS  = -std=c11 -Wall -Wextra -Wpedantic -O0 -g $(shell pkg-config --cflags $(PKG))
-LDLIBS  = $(shell pkg-config --libs $(PKG)) -lm
+PKG := sdl2 SDL2_image SDL2_mixer SDL2_ttf
 
-all: $(TARGET)
+WARN_FLAGS := -Wall -Wextra -Wpedantic
+DBG_FLAGS  := -g -O0
+CFLAGS     := -std=c11 $(WARN_FLAGS) $(DBG_FLAGS) -MMD -MP
 
-$(TARGET): $(OBJ) | build
-	$(CC) $(OBJ) -o $@ $(LDLIBS)
+SDL_CFLAGS := $(shell pkg-config --cflags $(PKG))
+SDL_LIBS   := $(shell pkg-config --libs   $(PKG))
 
-build/%.o: src/%.c | build
-	$(CC) $(CFLAGS) -c $< -o $@
+LDLIBS := $(SDL_LIBS) -lm
 
-build:
-	mkdir -p build
+.PHONY: all build run clean
 
-run: all
+all: build
+
+build: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(OBJS) -o $@ $(LDLIBS)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	$(CC) $(CFLAGS) $(SDL_CFLAGS) -c $< -o $@
+
+# Also creates build/ (not a separate rule: it would clash with the 'build' target).
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
+
+run: build
 	./$(TARGET)
 
+# build/ also holds tracked assets, fonts and DLLs; only remove build outputs.
 clean:
-	rm -rf build
+	rm -rf $(OBJ_DIR) $(TARGET)
 
-.PHONY: all run clean
-
+-include $(DEPS)

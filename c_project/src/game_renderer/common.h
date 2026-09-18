@@ -4,10 +4,11 @@
 //NOTE: should probably be removed for macos build...
 //#define SDL_MAIN_HANDLED
 
-#include "../include/SDL2/SDL.h"
-#include "../include/SDL2/SDL_image.h"
-#include "../include/SDL2/SDL_mixer.h"
-#include "../include/SDL2/SDL_ttf.h"
+// SDL include dir comes from the makefile (-I...SDL2) for each platform.
+#include <SDL.h>
+#include <SDL_image.h>
+#include <SDL_mixer.h>
+#include <SDL_ttf.h>
 
 #include <stdio.h>
 #include <stdint.h>
@@ -15,7 +16,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#define INT_MAX 2147483647
+#include <limits.h>
 
 
 #define ASSERTIF(cond, msg)                                   \

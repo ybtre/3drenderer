@@ -8,3 +8,11 @@ odin_project/build/Renderer.pdb
 odin_project\build\Renderer.exe.dSYM
 odin_project\build\Renderer.exe
 odin_project\build\Renderer.pdb
+# c_project build outputs (build/ itself holds tracked assets and DLLs)
+c_project/build/obj/
+c_project/build/Renderer
+c_project/build/Renderer.dSYM/
+c_project/build/Renderer.exe
+c_project/build/Renderer_lin
+c_project/build/app
+c_project/src/**/*.o
